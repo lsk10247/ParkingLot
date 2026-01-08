@@ -50,6 +50,15 @@ namespace ParkingLot
             this.splitter1 = new System.Windows.Forms.Splitter();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusBarXY = new System.Windows.Forms.ToolStripStatusLabel();
+            this.车辆设置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.车位设置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.信息查询ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.信息查询ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.停车ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.离场ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.修改信息ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.添加车位ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.修改信息ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.axMapControl1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.axToolbarControl1)).BeginInit();
@@ -61,10 +70,12 @@ namespace ParkingLot
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.menuFile});
+            this.menuFile,
+            this.车辆设置ToolStripMenuItem,
+            this.车位设置ToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(859, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(859, 25);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -78,7 +89,7 @@ namespace ParkingLot
             this.menuSeparator,
             this.menuExitApp});
             this.menuFile.Name = "menuFile";
-            this.menuFile.Size = new System.Drawing.Size(35, 20);
+            this.menuFile.Size = new System.Drawing.Size(39, 21);
             this.menuFile.Text = "File";
             // 
             // menuNewDoc
@@ -86,7 +97,7 @@ namespace ParkingLot
             this.menuNewDoc.Image = ((System.Drawing.Image)(resources.GetObject("menuNewDoc.Image")));
             this.menuNewDoc.ImageTransparentColor = System.Drawing.Color.White;
             this.menuNewDoc.Name = "menuNewDoc";
-            this.menuNewDoc.Size = new System.Drawing.Size(163, 22);
+            this.menuNewDoc.Size = new System.Drawing.Size(180, 22);
             this.menuNewDoc.Text = "New Document";
             this.menuNewDoc.Click += new System.EventHandler(this.menuNewDoc_Click);
             // 
@@ -95,7 +106,7 @@ namespace ParkingLot
             this.menuOpenDoc.Image = ((System.Drawing.Image)(resources.GetObject("menuOpenDoc.Image")));
             this.menuOpenDoc.ImageTransparentColor = System.Drawing.Color.White;
             this.menuOpenDoc.Name = "menuOpenDoc";
-            this.menuOpenDoc.Size = new System.Drawing.Size(163, 22);
+            this.menuOpenDoc.Size = new System.Drawing.Size(180, 22);
             this.menuOpenDoc.Text = "Open Document...";
             this.menuOpenDoc.Click += new System.EventHandler(this.menuOpenDoc_Click);
             // 
@@ -104,36 +115,36 @@ namespace ParkingLot
             this.menuSaveDoc.Image = ((System.Drawing.Image)(resources.GetObject("menuSaveDoc.Image")));
             this.menuSaveDoc.ImageTransparentColor = System.Drawing.Color.White;
             this.menuSaveDoc.Name = "menuSaveDoc";
-            this.menuSaveDoc.Size = new System.Drawing.Size(163, 22);
+            this.menuSaveDoc.Size = new System.Drawing.Size(180, 22);
             this.menuSaveDoc.Text = "SaveDocument";
             this.menuSaveDoc.Click += new System.EventHandler(this.menuSaveDoc_Click);
             // 
             // menuSaveAs
             // 
             this.menuSaveAs.Name = "menuSaveAs";
-            this.menuSaveAs.Size = new System.Drawing.Size(163, 22);
+            this.menuSaveAs.Size = new System.Drawing.Size(180, 22);
             this.menuSaveAs.Text = "Save As...";
             this.menuSaveAs.Click += new System.EventHandler(this.menuSaveAs_Click);
             // 
             // menuSeparator
             // 
             this.menuSeparator.Name = "menuSeparator";
-            this.menuSeparator.Size = new System.Drawing.Size(160, 6);
+            this.menuSeparator.Size = new System.Drawing.Size(177, 6);
             // 
             // menuExitApp
             // 
             this.menuExitApp.Name = "menuExitApp";
-            this.menuExitApp.Size = new System.Drawing.Size(163, 22);
+            this.menuExitApp.Size = new System.Drawing.Size(180, 22);
             this.menuExitApp.Text = "Exit";
             this.menuExitApp.Click += new System.EventHandler(this.menuExitApp_Click);
             // 
             // axMapControl1
             // 
             this.axMapControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.axMapControl1.Location = new System.Drawing.Point(191, 52);
+            this.axMapControl1.Location = new System.Drawing.Point(191, 53);
             this.axMapControl1.Name = "axMapControl1";
             this.axMapControl1.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("axMapControl1.OcxState")));
-            this.axMapControl1.Size = new System.Drawing.Size(668, 512);
+            this.axMapControl1.Size = new System.Drawing.Size(668, 466);
             this.axMapControl1.TabIndex = 2;
             this.axMapControl1.OnMouseMove += new ESRI.ArcGIS.Controls.IMapControlEvents2_Ax_OnMouseMoveEventHandler(this.axMapControl1_OnMouseMove);
             this.axMapControl1.OnMapReplaced += new ESRI.ArcGIS.Controls.IMapControlEvents2_Ax_OnMapReplacedEventHandler(this.axMapControl1_OnMapReplaced);
@@ -141,7 +152,7 @@ namespace ParkingLot
             // axToolbarControl1
             // 
             this.axToolbarControl1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.axToolbarControl1.Location = new System.Drawing.Point(0, 24);
+            this.axToolbarControl1.Location = new System.Drawing.Point(0, 25);
             this.axToolbarControl1.Name = "axToolbarControl1";
             this.axToolbarControl1.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("axToolbarControl1.OcxState")));
             this.axToolbarControl1.Size = new System.Drawing.Size(859, 28);
@@ -150,10 +161,10 @@ namespace ParkingLot
             // axTOCControl1
             // 
             this.axTOCControl1.Dock = System.Windows.Forms.DockStyle.Left;
-            this.axTOCControl1.Location = new System.Drawing.Point(3, 52);
+            this.axTOCControl1.Location = new System.Drawing.Point(3, 53);
             this.axTOCControl1.Name = "axTOCControl1";
             this.axTOCControl1.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("axTOCControl1.OcxState")));
-            this.axTOCControl1.Size = new System.Drawing.Size(188, 512);
+            this.axTOCControl1.Size = new System.Drawing.Size(188, 466);
             this.axTOCControl1.TabIndex = 4;
             // 
             // axLicenseControl1
@@ -167,9 +178,9 @@ namespace ParkingLot
             // 
             // splitter1
             // 
-            this.splitter1.Location = new System.Drawing.Point(0, 52);
+            this.splitter1.Location = new System.Drawing.Point(0, 53);
             this.splitter1.Name = "splitter1";
-            this.splitter1.Size = new System.Drawing.Size(3, 534);
+            this.splitter1.Size = new System.Drawing.Size(3, 488);
             this.splitter1.TabIndex = 6;
             this.splitter1.TabStop = false;
             // 
@@ -177,7 +188,7 @@ namespace ParkingLot
             // 
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusBarXY});
-            this.statusStrip1.Location = new System.Drawing.Point(3, 564);
+            this.statusStrip1.Location = new System.Drawing.Point(3, 519);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(856, 22);
             this.statusStrip1.Stretch = false;
@@ -189,14 +200,77 @@ namespace ParkingLot
             this.statusBarXY.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenOuter;
             this.statusBarXY.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.statusBarXY.Name = "statusBarXY";
-            this.statusBarXY.Size = new System.Drawing.Size(49, 17);
+            this.statusBarXY.Size = new System.Drawing.Size(57, 17);
             this.statusBarXY.Text = "Test 123";
+            // 
+            // 车辆设置ToolStripMenuItem
+            // 
+            this.车辆设置ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.信息查询ToolStripMenuItem,
+            this.停车ToolStripMenuItem,
+            this.离场ToolStripMenuItem,
+            this.修改信息ToolStripMenuItem});
+            this.车辆设置ToolStripMenuItem.Name = "车辆设置ToolStripMenuItem";
+            this.车辆设置ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
+            this.车辆设置ToolStripMenuItem.Text = "车辆";
+            // 
+            // 车位设置ToolStripMenuItem
+            // 
+            this.车位设置ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.信息查询ToolStripMenuItem1,
+            this.添加车位ToolStripMenuItem,
+            this.修改信息ToolStripMenuItem1});
+            this.车位设置ToolStripMenuItem.Name = "车位设置ToolStripMenuItem";
+            this.车位设置ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
+            this.车位设置ToolStripMenuItem.Text = "车位";
+            // 
+            // 信息查询ToolStripMenuItem
+            // 
+            this.信息查询ToolStripMenuItem.Name = "信息查询ToolStripMenuItem";
+            this.信息查询ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.信息查询ToolStripMenuItem.Text = "信息查询";
+            // 
+            // 信息查询ToolStripMenuItem1
+            // 
+            this.信息查询ToolStripMenuItem1.Name = "信息查询ToolStripMenuItem1";
+            this.信息查询ToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.信息查询ToolStripMenuItem1.Text = "信息查询";
+            // 
+            // 停车ToolStripMenuItem
+            // 
+            this.停车ToolStripMenuItem.Name = "停车ToolStripMenuItem";
+            this.停车ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.停车ToolStripMenuItem.Text = "停车";
+            // 
+            // 离场ToolStripMenuItem
+            // 
+            this.离场ToolStripMenuItem.Name = "离场ToolStripMenuItem";
+            this.离场ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.离场ToolStripMenuItem.Text = "离场";
+            // 
+            // 修改信息ToolStripMenuItem
+            // 
+            this.修改信息ToolStripMenuItem.Name = "修改信息ToolStripMenuItem";
+            this.修改信息ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.修改信息ToolStripMenuItem.Text = "修改信息";
+            // 
+            // 添加车位ToolStripMenuItem
+            // 
+            this.添加车位ToolStripMenuItem.Name = "添加车位ToolStripMenuItem";
+            this.添加车位ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.添加车位ToolStripMenuItem.Text = "添加车位";
+            // 
+            // 修改信息ToolStripMenuItem1
+            // 
+            this.修改信息ToolStripMenuItem1.Name = "修改信息ToolStripMenuItem1";
+            this.修改信息ToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.修改信息ToolStripMenuItem1.Text = "修改信息";
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(859, 586);
+            this.ClientSize = new System.Drawing.Size(859, 541);
             this.Controls.Add(this.axLicenseControl1);
             this.Controls.Add(this.axMapControl1);
             this.Controls.Add(this.axTOCControl1);
@@ -239,6 +313,15 @@ namespace ParkingLot
         private System.Windows.Forms.Splitter splitter1;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel statusBarXY;
+        private System.Windows.Forms.ToolStripMenuItem 车辆设置ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 车位设置ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 信息查询ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 停车ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 离场ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 修改信息ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 信息查询ToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem 添加车位ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 修改信息ToolStripMenuItem1;
     }
 }
 
