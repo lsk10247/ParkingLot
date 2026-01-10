@@ -172,8 +172,9 @@ namespace ParkingLot
             // 信息查询ToolStripMenuItem
             // 
             this.信息查询ToolStripMenuItem.Name = "信息查询ToolStripMenuItem";
-            this.信息查询ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.信息查询ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.信息查询ToolStripMenuItem.Text = "信息查询";
+            this.信息查询ToolStripMenuItem.Click += new System.EventHandler(this.信息查询ToolStripMenuItem_Click);
             // 
             // 停车ToolStripMenuItem
             // 

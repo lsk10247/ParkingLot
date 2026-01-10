@@ -1188,6 +1188,21 @@ namespace ParkingLot
             }
         }
 
+        private void 信息查询ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // 获取要编辑的车辆
+            string carlicenceplate = CarLicensePlateDialog.ShowDialogAndGetLicensePlate();
+            var car = manager.GetCarByLicense(carlicenceplate);
+
+            if (car != null)
+            {
+                // 显示编辑对话框
+                if (RegisterCarDialog.ShowDialogAndEditCar(car, this))
+                {
+                    MessageBox.Show($"车辆 {car.LicensePlate} 信息已更新");
+                }
+            }
+        }
     }
 }
 
