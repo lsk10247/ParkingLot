@@ -9,7 +9,7 @@ using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.DataSourcesFile;
 using ESRI.ArcGIS.Display;
 using ESRI.ArcGIS.Geometry;
-
+using ParkingLotManager;
 namespace ParkingLot
 {
     public sealed partial class MainForm : Form
@@ -17,6 +17,9 @@ namespace ParkingLot
         #region class private members
         private IMapControl3 m_mapControl = null;
         private string m_mapDocumentName = string.Empty;
+
+        // 获取停车场管理实例
+        ParkingLotManager.ParkingLotManager manager = ParkingLotManager.ParkingLotManager.Instance;
         #endregion
 
         //定义鼠标操作模式:无、添加车位、查询/编辑
@@ -460,5 +463,65 @@ namespace ParkingLot
             _currentAction = MouseAction.EditSpot;
             m_mapControl.MousePointer = esriControlsMousePointer.esriPointerIdentify;
         }
+
+        private void 停车ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var result = manager.CarEnter("浙A12345");
+            if (result.Success)
+            {
+                MessageBox.Show($"入场成功，分配车位: {result.AssignedSpace.Id}");
+            }
+        }
+
+        private void 离场ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var exitResult = manager.CarExit("浙A12345");
+            if (exitResult.Success)
+            {
+                Console.WriteLine($"出场成功，费用: {exitResult.ParkingFee:C}");
+
+                // 支付
+                var paymentResult = manager.ProcessPayment("浙A12345", exitResult.ParkingFee, "现金");
+                if (paymentResult.Success)
+                {
+                    Console.WriteLine($"支付成功，找零: {paymentResult.Change:C}");
+                }
+            }
+        }
     }
 }
+
+
+//// 获取停车场管理实例
+//var manager = ParkingLotManager.Instance;
+
+//// 车辆入场
+//var result = manager.CarEnter("浙A12345");
+//if (result.Success)
+//{
+//    Console.WriteLine($"入场成功，分配车位: {result.AssignedSpace.Id}");
+//}
+
+//// 车辆出场
+//var exitResult = manager.CarExit("浙A12345");
+//if (exitResult.Success)
+//{
+//    Console.WriteLine($"出场成功，费用: {exitResult.ParkingFee:C}");
+
+//    // 支付
+//    var paymentResult = manager.ProcessPayment("浙A12345", exitResult.ParkingFee, "现金");
+//    if (paymentResult.Success)
+//    {
+//        Console.WriteLine($"支付成功，找零: {paymentResult.Change:C}");
+//    }
+//}
+
+//// 查看停车场状态
+//Console.WriteLine(manager.GetParkingLotSummary());
+
+//// 搜索车辆
+//var cars = manager.SearchCars("张三");
+//foreach (var car in cars)
+//{
+//    Console.WriteLine(car.GetDescription());
+//}
