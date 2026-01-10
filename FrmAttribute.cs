@@ -20,12 +20,12 @@ namespace ParkingLot
         public int SpotStatus => cmbStatus.SelectedIndex;
 
 
-        public FrmAttribute(FormMode mode, string id = "", string type = "", int status = 0)
+        public FrmAttribute(FormMode mode, string id = "", string type = "", int status = 0, string licensePlate = "")
         {
             InitializeComponent();
 
             //初始化下拉框
-            if(type == "VIP")
+            if (type == "VIP")
             {
                 cmbType.SelectedIndex = 1;
             }
@@ -34,7 +34,7 @@ namespace ParkingLot
                 cmbType.SelectedIndex = 0;
             }
 
-            if(status >= 0 && status <= cmbStatus.Items.Count)
+            if (status >= 0 && status <= cmbStatus.Items.Count)
             {
                 cmbStatus.SelectedIndex = status;
             }
@@ -45,8 +45,11 @@ namespace ParkingLot
 
             txtSpotID.Text = id;
 
+            // 新增：设置车牌号文本框
+            licencePlatetextBox.Text = licensePlate ?? "";
+
             //根据模式调整界面状态
-            switch(mode)
+            switch (mode)
             {
                 case FormMode.ViewOnly:
                     this.Text = "车位信息详情";
@@ -69,11 +72,12 @@ namespace ParkingLot
             txtSpotID.Enabled = false;
             cmbType.Enabled = false;
             cmbStatus.Enabled = false;
+            licencePlatetextBox.Enabled = false; // 新增：禁用车牌号输入
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            if(string.IsNullOrWhiteSpace(txtSpotID.Text))
+            if (string.IsNullOrWhiteSpace(txtSpotID.Text))
             {
                 MessageBox.Show("车位编号不能为空！");
                 return;

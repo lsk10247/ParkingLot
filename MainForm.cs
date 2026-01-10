@@ -452,13 +452,22 @@ namespace ParkingLot
                     int.TryParse(val.ToString(), out currentStatus);
                 }
 
+                // 新增：从ParkingLotManager获取车牌号
+                string licensePlate = "";
+                ParkingLotManager.ParkingLotManager manager = ParkingLotManager.ParkingLotManager.Instance;
+                var space = manager.GetParkingSpaceById(currentID);
+                if (space != null)
+                {
+                    licensePlate = space.CurrentCarLicense ?? "";
+                }
+
                 //判断是查询还是编辑
                 FrmAttribute.FormMode mode = (_currentAction == MouseAction.QuerySpot)
                     ? FrmAttribute.FormMode.ViewOnly
                     : FrmAttribute.FormMode.EditInfo;
 
-                //弹出窗体
-                FrmAttribute frm = new FrmAttribute(mode, currentID, currentType, currentStatus);
+                //弹出窗体 - 新增车牌号参数
+                FrmAttribute frm = new FrmAttribute(mode, currentID, currentType, currentStatus, licensePlate);
 
                 //只有在编辑模式下点击保存，才回写数据
                 if (frm.ShowDialog() == DialogResult.OK && mode == FrmAttribute.FormMode.EditInfo)
