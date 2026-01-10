@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ParkingLot;
+
 namespace ParkingLotManager
 {
     /// <summary>
@@ -975,6 +976,38 @@ namespace ParkingLotManager
             }
 
             return sb.ToString();
+        }
+        #endregion
+
+        #region 可视化所需函数
+        // 存储车位与车辆的映射（车位号 → 车辆）
+        private Dictionary<int, Car> _parkedCars = new Dictionary<int, Car>();
+
+        // 根据车位号获取车辆
+        public Car GetCarBySpotNumber(int spotNumber)
+        {
+            _parkedCars.TryGetValue(spotNumber, out var car);
+            return car;
+        }
+
+        // 获取已占用车位数
+        public int GetUsedSpotCount()
+        {
+            return _parkedCars.Count;
+        }
+
+        // 补充：停车（关联现有注册车辆逻辑）
+        public bool ParkCar(int spotNumber, Car car)
+        {
+            if (_parkedCars.ContainsKey(spotNumber)) return false;
+            _parkedCars.Add(spotNumber, car);
+            return true;
+        }
+
+        // 补充：离场
+        public bool LeaveCar(int spotNumber)
+        {
+            return _parkedCars.Remove(spotNumber);
         }
         #endregion
     }

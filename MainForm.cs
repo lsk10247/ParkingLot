@@ -4,7 +4,6 @@ using ESRI.ArcGIS.SystemUI;
 using System;
 using System.IO;
 using System.Windows.Forms;
-
 using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.DataSourcesFile;
 using ESRI.ArcGIS.Display;
@@ -19,11 +18,9 @@ namespace ParkingLot
         #region class private members
         private IMapControl3 m_mapControl = null;
         private string m_mapDocumentName = string.Empty;
-
         // 获取停车场管理实例
         ParkingLotManager.ParkingLotManager manager = ParkingLotManager.ParkingLotManager.Instance;
         #endregion
-
         //定义鼠标操作模式:无、添加车位、查询/编辑
         private enum MouseAction { None, AddRect, AddPoly, QuerySpot, EditSpot }
         //记录当前选中的模式
@@ -753,11 +750,13 @@ namespace ParkingLot
             }
         }
 
-        private void 信息查询ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void 车位状态ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            var visualizationForm = new ParkingLotVisualizationForm(manager);
+            visualizationForm.Show();
         }
     }
+    
 }
 
 
