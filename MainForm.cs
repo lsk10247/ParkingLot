@@ -10,6 +10,9 @@ using ESRI.ArcGIS.Display;
 using ESRI.ArcGIS.Geometry;
 using ParkingLotManager;
 using System.Linq;
+using System.Collections.Generic;
+using System.Text;
+using System.Web.Script.Serialization;
 
 namespace ParkingLot
 {
@@ -125,7 +128,7 @@ namespace ParkingLot
                 statusBarXY.Text = System.IO.Path.GetFileName(m_mapDocumentName);
             }
         }
-        
+
         private void axMapControl1_OnMouseMove(object sender, IMapControlEvents2_OnMouseMoveEvent e)
         {
             statusBarXY.Text = string.Format("{0}, {1}  {2}", e.mapX.ToString("#######.##"), e.mapY.ToString("#######.##"), axMapControl1.MapUnits.ToString().Substring(4));
@@ -326,7 +329,7 @@ namespace ParkingLot
 
                 pGeoLayer.Renderer = pRender as IFeatureRenderer;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show($"渲染错误：{ex.Message}");
             }
@@ -337,7 +340,7 @@ namespace ParkingLot
         /// </summary>
         private void DrawNewSpot()
         {
-            if(_parkingLayer == null)
+            if (_parkingLayer == null)
             {
                 return;
             }
@@ -345,10 +348,10 @@ namespace ParkingLot
             //使用ArcEngine自带的追踪多边形工具
             IGeometry pGeometry = null;
             //矩形用TrackExtene
-            if(_currentAction == MouseAction.AddRect)
+            if (_currentAction == MouseAction.AddRect)
             {
                 IEnvelope pEnv = m_mapControl.TrackRectangle();
-                if(pEnv.IsEmpty)
+                if (pEnv.IsEmpty)
                 {
                     return;
                 }
@@ -359,12 +362,12 @@ namespace ParkingLot
                 pSegColl.SetRectangle(pEnv);
                 pGeometry = pPoly as IGeometry;
             }
-            else if(_currentAction == MouseAction.AddPoly)
+            else if (_currentAction == MouseAction.AddPoly)
             {
                 pGeometry = m_mapControl.TrackPolygon();
             }
 
-            if(pGeometry != null && !pGeometry.IsEmpty)
+            if (pGeometry != null && !pGeometry.IsEmpty)
             {
                 //弹出窗体，设置模式为“录入”
                 FrmAttribute frm = new FrmAttribute(FrmAttribute.FormMode.AddNew);
@@ -526,9 +529,9 @@ namespace ParkingLot
                 }
             }
             //右键退出当前操作模式，恢复鼠标原始状态
-            else if(e.button == 2)
+            else if (e.button == 2)
             {
-                if(_currentAction != MouseAction.None)
+                if (_currentAction != MouseAction.None)
                 {
                     ResetMouseToNormal();
                     MessageBox.Show("已退出当前操作模式！");
@@ -553,7 +556,7 @@ namespace ParkingLot
         private void 绘制多边形车位ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             axMapControl1.CurrentTool = null;
-            _currentAction = MouseAction.AddPoly; 
+            _currentAction = MouseAction.AddPoly;
             axMapControl1.MousePointer = esriControlsMousePointer.esriPointerPencil;
         }
 
@@ -856,9 +859,329 @@ namespace ParkingLot
             var visualizationForm = new ParkingLotVisualizationForm(manager);
             visualizationForm.Show();
         }
+
+        public class ParkingDataSerializer
+        {
+            // 用于JSON序列化的简化版本数据类
+            public class SerializedCar
+            {
+                public string LicensePlate { get; set; }
+                public VehicleType VehicleType { get; set; }
+                public CarBrand Brand { get; set; }
+                public CarColor Color { get; set; }
+                public string OwnerName { get; set; }
+                public string OwnerPhone { get; set; }
+                public bool IsVIP { get; set; }
+                public VehicleStatus Status { get; set; }
+                public DateTime? EntryTime { get; set; }
+                public DateTime? ExitTime { get; set; }
+                public string AssignedSpaceId { get; set; }
+                public DateTime? ReservationStartTime { get; set; }
+                public int ParkingCount { get; set; }
+                public decimal TotalSpent { get; set; }
+            }
+
+            public class SerializedParkingSpace
+            {
+                public string Id { get; set; }
+                public ParkingSpaceType Type { get; set; }
+                public ParkingSpaceStatus Status { get; set; }
+                public string Location { get; set; }
+                public double Size { get; set; }
+                public bool HasCharging { get; set; }
+                public bool HasShelter { get; set; }
+                public bool NearElevator { get; set; }
+                public decimal HourlyRate { get; set; }
+                public string CurrentCarLicense { get; set; }
+                public DateTime? OccupiedStartTime { get; set; }
+                public decimal TodayIncome { get; set; }
+                public int TodayParkingCount { get; set; }
+
+                public SerializedReservationInfo Reservation { get; set; }
+            }
+
+            public class SerializedReservationInfo
+            {
+                public string CarLicense { get; set; }
+                public DateTime StartTime { get; set; }
+                public DateTime ReserveTime { get; set; }
+            }
+
+            public class ParkingDataContainer
+            {
+                public System.Collections.Generic.List<SerializedCar> Cars { get; set; } = new List<SerializedCar>();
+                public System.Collections.Generic.List<SerializedParkingSpace> ParkingSpaces { get; set; } = new List<SerializedParkingSpace>();
+                public DateTime SaveTime { get; set; }
+                public string SaveVersion { get; set; } = "1.0";
+            }
+        }
+
+        private void 保存数据ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ParkingLotManager.ParkingLotManager manager = ParkingLotManager.ParkingLotManager.Instance;
+
+                // 创建数据容器
+                var data = new ParkingDataSerializer.ParkingDataContainer
+                {
+                    SaveTime = DateTime.Now
+                };
+
+                // 序列化车辆数据
+                foreach (var car in manager.GetAllCars())
+                {
+                    var serializedCar = new ParkingDataSerializer.SerializedCar
+                    {
+                        LicensePlate = car.LicensePlate,
+                        VehicleType = car.Type,
+                        Brand = car.Brand,
+                        Color = car.Color,
+                        OwnerName = car.OwnerName,
+                        OwnerPhone = car.OwnerPhone,
+                        IsVIP = car.IsVIP,
+                        Status = car.Status,
+                        EntryTime = car.EntryTime,
+                        ExitTime = car.ExitTime,
+                        AssignedSpaceId = car.AssignedSpaceId,
+                        ReservationStartTime = car.ReservationStartTime,
+                        ParkingCount = car.ParkingCount,
+                        TotalSpent = car.TotalSpent
+                    };
+                    data.Cars.Add(serializedCar);
+                }
+
+                // 序列化车位数据
+                foreach (var space in manager.GetAllParkingSpaces())
+                {
+                    var serializedSpace = new ParkingDataSerializer.SerializedParkingSpace
+                    {
+                        Id = space.Id,
+                        Type = space.Type,
+                        Status = space.Status,
+                        Location = space.Location,
+                        Size = space.Size,
+                        HasCharging = space.HasCharging,
+                        HasShelter = space.HasShelter,
+                        NearElevator = space.NearElevator,
+                        HourlyRate = space.HourlyRate,
+                        CurrentCarLicense = space.CurrentCarLicense,
+                        OccupiedStartTime = space.OccupiedStartTime,
+                        TodayIncome = space.TodayIncome,
+                        TodayParkingCount = space.TodayParkingCount
+                    };
+
+                    // 如果有预约信息，也保存
+                    if (space.Reservation != null)
+                    {
+                        serializedSpace.Reservation = new ParkingDataSerializer.SerializedReservationInfo
+                        {
+                            CarLicense = space.Reservation.CarLicense,
+                            StartTime = space.Reservation.StartTime,
+                            ReserveTime = space.Reservation.ReserveTime
+                        };
+                    }
+
+                    data.ParkingSpaces.Add(serializedSpace);
+                }
+
+                // 使用 JavaScriptSerializer 序列化
+                JavaScriptSerializer serializer = new JavaScriptSerializer();
+                string jsonData = serializer.Serialize(data);
+
+                // 获取保存路径
+                string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string exeDirectory = System.IO.Path.GetDirectoryName(exePath);
+                string savePath = System.IO.Path.Combine(exeDirectory, "parking_data.txt");
+
+                // 保存到文件
+                File.WriteAllText(savePath, jsonData, Encoding.UTF8);
+
+                // 显示保存成功信息
+                string message = $"数据保存成功！\n" +
+                                $"保存路径：{savePath}\n" +
+                                $"保存时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}\n" +
+                                $"保存车辆数：{data.Cars.Count}\n" +
+                                $"保存车位数：{data.ParkingSpaces.Count}";
+
+                MessageBox.Show(message, "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // 记录操作日志
+                //LogSaveOperation(data.Cars.Count, data.ParkingSpaces.Count, savePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存数据失败：\n{ex.Message}", "保存失败",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void 加载数据ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // 获取文件路径
+                string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string exeDirectory = System.IO.Path.GetDirectoryName(exePath);
+                string loadPath = System.IO.Path.Combine(exeDirectory, "parking_data.txt");
+
+                // 检查文件是否存在
+                if (!File.Exists(loadPath))
+                {
+                    MessageBox.Show($"数据文件不存在：\n{loadPath}\n请先保存数据。", "加载失败",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // 读取文件内容
+                string jsonData = File.ReadAllText(loadPath, Encoding.UTF8);
+
+                // 使用 JavaScriptSerializer 反序列化
+                JavaScriptSerializer serializer = new JavaScriptSerializer();
+                var data = serializer.Deserialize<ParkingDataSerializer.ParkingDataContainer>(jsonData);
+
+                if (data == null)
+                {
+                    MessageBox.Show("数据文件格式错误，无法加载。", "加载失败",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                ParkingLotManager.ParkingLotManager manager = ParkingLotManager.ParkingLotManager.Instance;
+                int loadedCars = 0;
+                int loadedSpaces = 0;
+
+                // 询问用户是否覆盖现有数据
+                DialogResult result = MessageBox.Show(
+                    $"发现保存时间：{data.SaveTime:yyyy-MM-dd HH:mm:ss}\n" +
+                    $"车辆数：{data.Cars.Count}，车位数：{data.ParkingSpaces.Count}\n\n" +
+                    "是否加载数据？这将覆盖当前所有数据。",
+                    "确认加载",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result != DialogResult.Yes)
+                {
+                    return;
+                }
+
+                // 清空现有数据
+                manager.ClearAllData();
+
+                // 加载车位数据
+                foreach (var serializedSpace in data.ParkingSpaces)
+                {
+                    try
+                    {
+                        var space = new ParkingSpace(serializedSpace.Id, serializedSpace.Type)
+                        {
+                            Status = serializedSpace.Status,
+                            Location = serializedSpace.Location,
+                            Size = serializedSpace.Size,
+                            HasCharging = serializedSpace.HasCharging,
+                            HasShelter = serializedSpace.HasShelter,
+                            NearElevator = serializedSpace.NearElevator,
+                            HourlyRate = serializedSpace.HourlyRate,
+                            CurrentCarLicense = serializedSpace.CurrentCarLicense,
+                            OccupiedStartTime = serializedSpace.OccupiedStartTime,
+                            TodayIncome = serializedSpace.TodayIncome,
+                            TodayParkingCount = serializedSpace.TodayParkingCount
+                        };
+
+                        // 恢复预约信息
+                        if (serializedSpace.Reservation != null)
+                        {
+                            space.Reservation = new ReservationInfo
+                            {
+                                CarLicense = serializedSpace.Reservation.CarLicense,
+                                StartTime = serializedSpace.Reservation.StartTime,
+                                ReserveTime = serializedSpace.Reservation.ReserveTime
+                            };
+                        }
+
+                        if (manager.AddParkingSpace(space))
+                        {
+                            loadedSpaces++;
+                        }
+                    }
+                    catch (Exception spaceEx)
+                    {
+                        // 记录错误但继续加载其他数据
+                        //LogError($"加载车位 {serializedSpace.Id} 失败：{spaceEx.Message}");
+                    }
+                }
+
+                // 加载车辆数据
+                foreach (var serializedCar in data.Cars)
+                {
+                    try
+                    {
+                        var car = new Car(serializedCar.LicensePlate, serializedCar.VehicleType)
+                        {
+                            Brand = serializedCar.Brand,
+                            Color = serializedCar.Color,
+                            OwnerName = serializedCar.OwnerName,
+                            OwnerPhone = serializedCar.OwnerPhone,
+                            IsVIP = serializedCar.IsVIP,
+                            Status = serializedCar.Status,
+                            EntryTime = serializedCar.EntryTime,
+                            ExitTime = serializedCar.ExitTime,
+                            AssignedSpaceId = serializedCar.AssignedSpaceId,
+                            ReservationStartTime = serializedCar.ReservationStartTime,
+                            ParkingCount = serializedCar.ParkingCount,
+                            TotalSpent = serializedCar.TotalSpent
+                        };
+
+                        if (manager.RegisterCar(car))
+                        {
+                            loadedCars++;
+                        }
+                    }
+                    catch (Exception carEx)
+                    {
+                        // 记录错误但继续加载其他数据
+                        //LogError($"加载车辆 {serializedCar.LicensePlate} 失败：{carEx.Message}");
+                    }
+                }
+
+                // 同步车位状态到地图（如果有地图）
+                manager.SyncAllSpacesToMap();
+
+                // 刷新界面显示
+                //RefreshParkingDisplay();
+
+                // 显示加载成功信息
+                string message = $"数据加载成功！\n\n" +
+                                $"加载路径：{loadPath}\n" +
+                                $"原保存时间：{data.SaveTime:yyyy-MM-dd HH:mm:ss}\n" +
+                                $"成功加载车辆：{loadedCars}/{data.Cars.Count}\n" +
+                                $"成功加载车位：{loadedSpaces}/{data.ParkingSpaces.Count}";
+
+                if (loadedCars < data.Cars.Count || loadedSpaces < data.ParkingSpaces.Count)
+                {
+                    message += $"\n\n部分数据加载失败，请查看错误日志。";
+                    MessageBox.Show(message, "加载完成（有警告）",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    MessageBox.Show(message, "加载成功",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+                // 记录操作日志
+                //LogLoadOperation(loadedCars, loadedSpaces, loadPath, data.SaveTime);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载数据失败：\n{ex.Message}", "加载失败",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
     }
-    
 }
+
 
 
 //// 获取停车场管理实例

@@ -394,27 +394,27 @@ namespace ParkingLot
         /// <summary>
         /// 当前停放车辆的车牌号
         /// </summary>
-        public string CurrentCarLicense { get; private set; }
+        public string CurrentCarLicense { get; set; }
         
         /// <summary>
         /// 车位被占用的开始时间
         /// </summary>
-        public DateTime? OccupiedStartTime { get; private set; }
+        public DateTime? OccupiedStartTime { get; set; }
         
         /// <summary>
         /// 车位预约信息
         /// </summary>
-        public ReservationInfo Reservation { get; private set; }
+        public ReservationInfo Reservation { get; set; }
         
         /// <summary>
         /// 今日累计收入
         /// </summary>
-        public decimal TodayIncome { get; private set; }
+        public decimal TodayIncome { get; set; }
         
         /// <summary>
         /// 今日停车次数
         /// </summary>
-        public int TodayParkingCount { get; private set; }
+        public int TodayParkingCount { get; set; }
         #endregion
 
         #region 构造函数

@@ -519,6 +519,31 @@ namespace ParkingLotManager
             return null;
         }
 
+        // 清除所有业务数据
+        public bool ClearAllData()
+        {
+            try
+            {
+                _allCars.Clear();
+                _allParkingSpaces.Clear();
+                _parkingRecords.Clear();
+                _paymentRecords.Clear();
+                _violationRecords.Clear();
+
+                TotalCapacity = 0;
+
+                // 重置今日统计
+                //ResetAllDailyStats();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogError($"清除数据失败：{ex.Message}");
+                return false;
+            }
+        }
+
         #endregion
 
         #region 停车场配置
