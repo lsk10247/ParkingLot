@@ -63,6 +63,9 @@ namespace ParkingLot
             this.splitter1 = new System.Windows.Forms.Splitter();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusBarXY = new System.Windows.Forms.ToolStripStatusLabel();
+            this.预约ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.注册车辆ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.注销车辆ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.axMapControl1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.axToolbarControl1)).BeginInit();
@@ -151,7 +154,10 @@ namespace ParkingLot
             this.信息查询ToolStripMenuItem,
             this.停车ToolStripMenuItem,
             this.离场ToolStripMenuItem,
-            this.修改信息ToolStripMenuItem});
+            this.修改信息ToolStripMenuItem,
+            this.预约ToolStripMenuItem,
+            this.注册车辆ToolStripMenuItem,
+            this.注销车辆ToolStripMenuItem});
             this.车辆设置ToolStripMenuItem.Name = "车辆设置ToolStripMenuItem";
             this.车辆设置ToolStripMenuItem.Size = new System.Drawing.Size(44, 21);
             this.车辆设置ToolStripMenuItem.Text = "车辆";
@@ -161,6 +167,7 @@ namespace ParkingLot
             this.信息查询ToolStripMenuItem.Name = "信息查询ToolStripMenuItem";
             this.信息查询ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.信息查询ToolStripMenuItem.Text = "信息查询";
+            this.信息查询ToolStripMenuItem.Click += new System.EventHandler(this.信息查询ToolStripMenuItem_Click);
             // 
             // 停车ToolStripMenuItem
             // 
@@ -181,6 +188,7 @@ namespace ParkingLot
             this.修改信息ToolStripMenuItem.Name = "修改信息ToolStripMenuItem";
             this.修改信息ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.修改信息ToolStripMenuItem.Text = "修改信息";
+            this.修改信息ToolStripMenuItem.Click += new System.EventHandler(this.修改信息ToolStripMenuItem_Click);
             // 
             // 车位设置ToolStripMenuItem
             // 
@@ -196,14 +204,14 @@ namespace ParkingLot
             // 加载地图ToolStripMenuItem1
             // 
             this.加载地图ToolStripMenuItem1.Name = "加载地图ToolStripMenuItem1";
-            this.加载地图ToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.加载地图ToolStripMenuItem1.Size = new System.Drawing.Size(124, 22);
             this.加载地图ToolStripMenuItem1.Text = "加载地图";
             this.加载地图ToolStripMenuItem1.Click += new System.EventHandler(this.加载地图ToolStripMenuItem1_Click);
             // 
             // 车位信息查询ToolStripMenuItem
             // 
             this.车位信息查询ToolStripMenuItem.Name = "车位信息查询ToolStripMenuItem";
-            this.车位信息查询ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.车位信息查询ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             this.车位信息查询ToolStripMenuItem.Text = "信息查询";
             this.车位信息查询ToolStripMenuItem.Click += new System.EventHandler(this.车位信息查询ToolStripMenuItem_Click);
             // 
@@ -213,27 +221,27 @@ namespace ParkingLot
             this.绘制矩形车位ToolStripMenuItem,
             this.绘制多边形车位ToolStripMenuItem});
             this.添加车位ToolStripMenuItem1.Name = "添加车位ToolStripMenuItem1";
-            this.添加车位ToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.添加车位ToolStripMenuItem1.Size = new System.Drawing.Size(124, 22);
             this.添加车位ToolStripMenuItem1.Text = "添加车位";
             // 
             // 绘制矩形车位ToolStripMenuItem
             // 
             this.绘制矩形车位ToolStripMenuItem.Name = "绘制矩形车位ToolStripMenuItem";
-            this.绘制矩形车位ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.绘制矩形车位ToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.绘制矩形车位ToolStripMenuItem.Text = "矩形";
             this.绘制矩形车位ToolStripMenuItem.Click += new System.EventHandler(this.绘制矩形车位ToolStripMenuItem_Click);
             // 
             // 绘制多边形车位ToolStripMenuItem
             // 
             this.绘制多边形车位ToolStripMenuItem.Name = "绘制多边形车位ToolStripMenuItem";
-            this.绘制多边形车位ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.绘制多边形车位ToolStripMenuItem.Size = new System.Drawing.Size(112, 22);
             this.绘制多边形车位ToolStripMenuItem.Text = "多边形";
             this.绘制多边形车位ToolStripMenuItem.Click += new System.EventHandler(this.绘制多边形车位ToolStripMenuItem_Click);
             // 
             // 修改信息ToolStripMenuItem2
             // 
             this.修改信息ToolStripMenuItem2.Name = "修改信息ToolStripMenuItem2";
-            this.修改信息ToolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
+            this.修改信息ToolStripMenuItem2.Size = new System.Drawing.Size(124, 22);
             this.修改信息ToolStripMenuItem2.Text = "修改信息";
             this.修改信息ToolStripMenuItem2.Click += new System.EventHandler(this.修改信息ToolStripMenuItem2_Click);
             // 
@@ -311,6 +319,27 @@ namespace ParkingLot
             this.statusBarXY.Size = new System.Drawing.Size(57, 17);
             this.statusBarXY.Text = "Test 123";
             // 
+            // 预约ToolStripMenuItem
+            // 
+            this.预约ToolStripMenuItem.Name = "预约ToolStripMenuItem";
+            this.预约ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.预约ToolStripMenuItem.Text = "预约";
+            this.预约ToolStripMenuItem.Click += new System.EventHandler(this.预约ToolStripMenuItem_Click);
+            // 
+            // 注册车辆ToolStripMenuItem
+            // 
+            this.注册车辆ToolStripMenuItem.Name = "注册车辆ToolStripMenuItem";
+            this.注册车辆ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.注册车辆ToolStripMenuItem.Text = "注册车辆";
+            this.注册车辆ToolStripMenuItem.Click += new System.EventHandler(this.注册车辆ToolStripMenuItem_Click);
+            // 
+            // 注销车辆ToolStripMenuItem
+            // 
+            this.注销车辆ToolStripMenuItem.Name = "注销车辆ToolStripMenuItem";
+            this.注销车辆ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.注销车辆ToolStripMenuItem.Text = "注销车辆";
+            this.注销车辆ToolStripMenuItem.Click += new System.EventHandler(this.注销车辆ToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -371,6 +400,9 @@ namespace ParkingLot
         private System.Windows.Forms.ToolStripMenuItem 停止操作ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 绘制矩形车位ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 绘制多边形车位ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 预约ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 注册车辆ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 注销车辆ToolStripMenuItem;
     }
 }
 

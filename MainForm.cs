@@ -1,4 +1,4 @@
-using ESRI.ArcGIS.Carto;
+ï»¿using ESRI.ArcGIS.Carto;
 using ESRI.ArcGIS.Controls;
 using ESRI.ArcGIS.SystemUI;
 using System;
@@ -10,6 +10,8 @@ using ESRI.ArcGIS.DataSourcesFile;
 using ESRI.ArcGIS.Display;
 using ESRI.ArcGIS.Geometry;
 using ParkingLotManager;
+using System.Linq;
+
 namespace ParkingLot
 {
     public sealed partial class MainForm : Form
@@ -18,15 +20,15 @@ namespace ParkingLot
         private IMapControl3 m_mapControl = null;
         private string m_mapDocumentName = string.Empty;
 
-        // »ñÈ¡Í£³µ³¡¹ÜÀíÊµÀı
+        // è·å–åœè½¦åœºç®¡ç†å®ä¾‹
         ParkingLotManager.ParkingLotManager manager = ParkingLotManager.ParkingLotManager.Instance;
         #endregion
 
-        //¶¨ÒåÊó±ê²Ù×÷Ä£Ê½:ÎŞ¡¢Ìí¼Ó³µÎ»¡¢²éÑ¯/±à¼­
+        //å®šä¹‰é¼ æ ‡æ“ä½œæ¨¡å¼:æ— ã€æ·»åŠ è½¦ä½ã€æŸ¥è¯¢/ç¼–è¾‘
         private enum MouseAction { None, AddRect, AddPoly, QuerySpot, EditSpot }
-        //¼ÇÂ¼µ±Ç°Ñ¡ÖĞµÄÄ£Ê½
+        //è®°å½•å½“å‰é€‰ä¸­çš„æ¨¡å¼
         private MouseAction _currentAction = MouseAction.None;
-        //¼ÇÂ¼ShapefileÍ¼²ãµÄÒıÓÃ£¬·½±ãºóĞøµ÷ÓÃ
+        //è®°å½•Shapefileå›¾å±‚çš„å¼•ç”¨ï¼Œæ–¹ä¾¿åç»­è°ƒç”¨
         private IFeatureLayer _parkingLayer = null;
 
 
@@ -132,10 +134,10 @@ namespace ParkingLot
             statusBarXY.Text = string.Format("{0}, {1}  {2}", e.mapX.ToString("#######.##"), e.mapY.ToString("#######.##"), axMapControl1.MapUnits.ToString().Substring(4));
         }
 
-        #region Ä£¿éAºËĞÄ¹¦ÄÜ£ºµØÍ¼¹ÜÀíÓë½»»¥
+        #region æ¨¡å—Aæ ¸å¿ƒåŠŸèƒ½ï¼šåœ°å›¾ç®¡ç†ä¸äº¤äº’
 
         /// <summary>
-        /// 1.¼ÓÔØShapefile²¢×Ô¶¯äÖÈ¾ÑÕÉ«
+        /// 1.åŠ è½½Shapefileå¹¶è‡ªåŠ¨æ¸²æŸ“é¢œè‰²
         /// </summary>
         /// <param name="folderPath"></param>
         /// <param name="fileName"></param>
@@ -143,10 +145,10 @@ namespace ParkingLot
         {
             try
             {
-                //µ¯³ö¶Ô»°¿òÑ¡ÔñÎÄ¼ş
+                //å¼¹å‡ºå¯¹è¯æ¡†é€‰æ‹©æ–‡ä»¶
                 OpenFileDialog dlg = new OpenFileDialog();
-                dlg.Filter = "ShapefileÎÄ¼ş(*.shp)|*.shp";
-                dlg.Title = "ÇëÑ¡ÔñÍ£³µ³¡³µÎ»Êı¾İ";
+                dlg.Filter = "Shapefileæ–‡ä»¶(*.shp)|*.shp";
+                dlg.Title = "è¯·é€‰æ‹©åœè½¦åœºè½¦ä½æ•°æ®";
 
                 string path = null;
                 string file = null;
@@ -157,30 +159,30 @@ namespace ParkingLot
                     file = System.IO.Path.GetFileName(dlg.FileName);
                 }
 
-                //¼ÓÔØÊı¾İ
+                //åŠ è½½æ•°æ®
                 IWorkspaceFactory pWorkspaceFactory = new ShapefileWorkspaceFactoryClass();
                 IFeatureWorkspace pFeatureWorkspace = (IFeatureWorkspace)pWorkspaceFactory.OpenFromFile(path, 0);
                 IFeatureClass pFeatureClass = pFeatureWorkspace.OpenFeatureClass(System.IO.Path.GetFileNameWithoutExtension(file));
 
                 _parkingLayer = new FeatureLayerClass();
                 _parkingLayer.FeatureClass = pFeatureClass;
-                _parkingLayer.Name = "Í£³µ³¡³µÎ»";
+                _parkingLayer.Name = "åœè½¦åœºè½¦ä½";
 
-                //µ÷ÓÃäÖÈ¾º¯Êı£¬¸ù¾İ×´Ì¬ÉÏÉ«
+                //è°ƒç”¨æ¸²æŸ“å‡½æ•°ï¼Œæ ¹æ®çŠ¶æ€ä¸Šè‰²
                 RenderLayerByStatus(_parkingLayer);
 
-                //Ìí¼Óµ½µØÍ¼
+                //æ·»åŠ åˆ°åœ°å›¾
                 m_mapControl.AddLayer(_parkingLayer);
                 m_mapControl.ActiveView.Refresh();
             }
             catch(Exception ex)
             {
-                MessageBox.Show($"µØÍ¼¼ÓÔØÊ§°Ü£º{ex.Message}");
+                MessageBox.Show($"åœ°å›¾åŠ è½½å¤±è´¥ï¼š{ex.Message}");
             }
         }
 
 
-        //¸¨Öú·½·¨£º´´½¨RGBÑÕÉ«¶ÔÏó
+        //è¾…åŠ©æ–¹æ³•ï¼šåˆ›å»ºRGBé¢œè‰²å¯¹è±¡
         private IRgbColor GetRgbColor(int r, int g, int b)
         {
             IRgbColor pColor = new RgbColorClass();
@@ -191,7 +193,7 @@ namespace ParkingLot
         }
 
         /// <summary>
-        /// 2.Í¼²ã·ûºÅ»¯£º¸ù¾İStatus×Ö¶ÎÖµÏÔÊ¾²»Í¬ÑÕÉ«
+        /// 2.å›¾å±‚ç¬¦å·åŒ–ï¼šæ ¹æ®Statuså­—æ®µå€¼æ˜¾ç¤ºä¸åŒé¢œè‰²
         /// </summary>
         /// <param name="pLayer"></param>
         private void RenderLayerByStatus(IFeatureLayer pLayer)
@@ -201,39 +203,39 @@ namespace ParkingLot
                 IGeoFeatureLayer pGeoLayer = pLayer as IGeoFeatureLayer;
                 IUniqueValueRenderer pRender = new UniqueValueRendererClass();
 
-                //ÉèÖÃ°ó¶¨µÄ×Ö¶ÎÃû£¨±ØĞëÈ·±£ShapefileÀïÓĞ¡°Status¡±Õâ¸ö×Ö¶Î£©
+                //è®¾ç½®ç»‘å®šçš„å­—æ®µåï¼ˆå¿…é¡»ç¡®ä¿Shapefileé‡Œæœ‰â€œStatusâ€è¿™ä¸ªå­—æ®µï¼‰
                 pRender.FieldCount = 1;
                 pRender.set_Field(0, "Status");
 
-                //´´½¨ÈıÖÖÑÕÉ«µÄ·ûºÅ
-                //ÂÌÉ«-¿ÕÏĞ
+                //åˆ›å»ºä¸‰ç§é¢œè‰²çš„ç¬¦å·
+                //ç»¿è‰²-ç©ºé—²
                 ISimpleFillSymbol symFree = new SimpleFillSymbolClass();
                 symFree.Color = GetRgbColor(0, 255, 0);
                 symFree.Style = esriSimpleFillStyle.esriSFSSolid;
-                //ºìÉ«-Õ¼ÓÃ
+                //çº¢è‰²-å ç”¨
                 ISimpleFillSymbol symBusy = new SimpleFillSymbolClass();
                 symBusy.Color = GetRgbColor(255, 0, 0);
                 symBusy.Style = esriSimpleFillStyle.esriSFSSolid;
-                //À¶É«-Ô¤¶©
+                //è“è‰²-é¢„è®¢
                 ISimpleFillSymbol symBooked = new SimpleFillSymbolClass();
                 symBooked.Color = GetRgbColor(0, 0, 255);
                 symBooked.Style = esriSimpleFillStyle.esriSFSSolid;
 
-                //Ìí¼Ó¶ÔÓ¦¹ØÏµ(Shapefile´æ´¢ÎªÕûĞÍ£º0,1,2£©
-                pRender.AddValue("0", "¿ÕÏĞ", symFree as ISymbol);
-                pRender.AddValue("1", "Õ¼ÓÃ", symBusy as ISymbol);
-                pRender.AddValue("2", "Ô¤Ô¼", symBooked as ISymbol);
+                //æ·»åŠ å¯¹åº”å…³ç³»(Shapefileå­˜å‚¨ä¸ºæ•´å‹ï¼š0,1,2ï¼‰
+                pRender.AddValue("0", "ç©ºé—²", symFree as ISymbol);
+                pRender.AddValue("1", "å ç”¨", symBusy as ISymbol);
+                pRender.AddValue("2", "é¢„çº¦", symBooked as ISymbol);
 
                 pGeoLayer.Renderer = pRender as IFeatureRenderer;
             }
             catch(Exception ex)
             {
-                MessageBox.Show($"äÖÈ¾´íÎó£º{ex.Message}");
+                MessageBox.Show($"æ¸²æŸ“é”™è¯¯ï¼š{ex.Message}");
             }
         }
 
         /// <summary>
-        /// 3.»­³µÎ»£¨Ö§³Ö¾ØĞÎÓë¶à±ßĞÎ»æÖÆ£©
+        /// 3.ç”»è½¦ä½ï¼ˆæ”¯æŒçŸ©å½¢ä¸å¤šè¾¹å½¢ç»˜åˆ¶ï¼‰
         /// </summary>
         private void DrawNewSpot()
         {
@@ -242,9 +244,9 @@ namespace ParkingLot
                 return;
             }
 
-            //Ê¹ÓÃArcEngine×Ô´øµÄ×·×Ù¶à±ßĞÎ¹¤¾ß
+            //ä½¿ç”¨ArcEngineè‡ªå¸¦çš„è¿½è¸ªå¤šè¾¹å½¢å·¥å…·
             IGeometry pGeometry = null;
-            //¾ØĞÎÓÃTrackExtene
+            //çŸ©å½¢ç”¨TrackExtene
             if(_currentAction == MouseAction.AddRect)
             {
                 IEnvelope pEnv = m_mapControl.TrackRectangle();
@@ -253,7 +255,7 @@ namespace ParkingLot
                     return;
                 }
 
-                //½«IEnvelope×ªÎªPolygon
+                //å°†IEnvelopeè½¬ä¸ºPolygon
                 IPolygon pPoly = new PolygonClass();
                 ISegmentCollection pSegColl = pPoly as ISegmentCollection;
                 pSegColl.SetRectangle(pEnv);
@@ -266,18 +268,18 @@ namespace ParkingLot
 
             if(pGeometry != null && !pGeometry.IsEmpty)
             {
-                //µ¯³ö´°Ìå£¬ÉèÖÃÄ£Ê½Îª¡°Â¼Èë¡±
+                //å¼¹å‡ºçª—ä½“ï¼Œè®¾ç½®æ¨¡å¼ä¸ºâ€œå½•å…¥â€
                 FrmAttribute frm = new FrmAttribute(FrmAttribute.FormMode.AddNew);
 
-                //ÓÃ»§µã»÷¡°±£´æ¡±
+                //ç”¨æˆ·ç‚¹å‡»â€œä¿å­˜â€
                 if (frm.ShowDialog() == DialogResult.OK)
                 {
                     IFeatureClass pClass = _parkingLayer.FeatureClass;
                     IFeature pFeature = pClass.CreateFeature();
                     pFeature.Shape = pGeometry;
 
-                    //Ğ´Èë³õÊ¼ÊôĞÔ
-                    //²éÕÒ×Ö¶ÎË÷Òı
+                    //å†™å…¥åˆå§‹å±æ€§
+                    //æŸ¥æ‰¾å­—æ®µç´¢å¼•
                     int idxID = pClass.FindField("SpotID");
                     int idxStatus = pClass.FindField("Status");
                     int idxType = pClass.FindField("Type");
@@ -286,29 +288,29 @@ namespace ParkingLot
                     {
                         pFeature.set_Value(idxID, frm.SpotID);
                     }
-                    //Ä¬ÈÏÎª¿ÉÓÃ³µÎ»
+                    //é»˜è®¤ä¸ºå¯ç”¨è½¦ä½
                     if (idxStatus != -1)
                     {
                         pFeature.set_Value(idxStatus, frm.SpotStatus);
                     }
-                    //Ä¬ÈÏÎª±ê×¼³µÎ»
+                    //é»˜è®¤ä¸ºæ ‡å‡†è½¦ä½
                     if (idxType != -1)
                     {
                         pFeature.set_Value(idxType, frm.SpotType);
                     }
 
-                    //±£´æµ½shpÎÄ¼ş
+                    //ä¿å­˜åˆ°shpæ–‡ä»¶
                     pFeature.Store();
                     m_mapControl.ActiveView.Refresh();
 
-                    //äÖÈ¾ÑÕÉ«£¬·ÀÖ¹ĞÂ»­µÄÃ»ÑÕÉ«
+                    //æ¸²æŸ“é¢œè‰²ï¼Œé˜²æ­¢æ–°ç”»çš„æ²¡é¢œè‰²
                     RenderLayerByStatus(_parkingLayer);
                 }
             }
         }
 
         /// <summary>
-        /// 4.²éÑ¯ÓëĞŞ¸Äµ±Ç°³µÎ»ĞÅÏ¢¡£
+        /// 4.æŸ¥è¯¢ä¸ä¿®æ”¹å½“å‰è½¦ä½ä¿¡æ¯ã€‚
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -320,10 +322,10 @@ namespace ParkingLot
             }
 
             IPoint pPoint = new PointClass();
-            //½«ÆÁÄ»×ø±ê×ªÎªµØÍ¼µã
+            //å°†å±å¹•åæ ‡è½¬ä¸ºåœ°å›¾ç‚¹
             pPoint.PutCoords(x, y);
 
-            //¿Õ¼ä¹ıÂËÆ÷£º²éÕÒÓëµã»÷µãÏà½»µÄÒªËØ
+            //ç©ºé—´è¿‡æ»¤å™¨ï¼šæŸ¥æ‰¾ä¸ç‚¹å‡»ç‚¹ç›¸äº¤çš„è¦ç´ 
             ISpatialFilter pFilter = new SpatialFilterClass();
             pFilter.Geometry = pPoint;
             pFilter.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
@@ -333,13 +335,13 @@ namespace ParkingLot
 
             if(pFeature != null)
             {
-                //»ñÈ¡µ±Ç°³µÎ»ÊôĞÔÖµ
+                //è·å–å½“å‰è½¦ä½å±æ€§å€¼
                 int idxID = pFeature.Fields.FindField("SpotID");
                 int idxStatus = pFeature.Fields.FindField("Status");
                 int idxType = pFeature.Fields.FindField("Type");
 
-                //´¦ÀíÎª²éÑ¯µ½µÄÇé¿ö
-                string currentID = (idxID != -1) ? pFeature.get_Value(idxID).ToString() : "Î´Öª";
+                //å¤„ç†ä¸ºæŸ¥è¯¢åˆ°çš„æƒ…å†µ
+                string currentID = (idxID != -1) ? pFeature.get_Value(idxID).ToString() : "æœªçŸ¥";
                 string currentType = (idxType != -1) ? pFeature.get_Value(idxType).ToString() : "Standard";
 
                 int currentStatus = 0;
@@ -349,15 +351,15 @@ namespace ParkingLot
                     int.TryParse(val.ToString(), out currentStatus);
                 }
 
-                //ÅĞ¶ÏÊÇ²éÑ¯»¹ÊÇ±à¼­
+                //åˆ¤æ–­æ˜¯æŸ¥è¯¢è¿˜æ˜¯ç¼–è¾‘
                 FrmAttribute.FormMode mode = (_currentAction == MouseAction.QuerySpot)
                     ? FrmAttribute.FormMode.ViewOnly
                     : FrmAttribute.FormMode.EditInfo;
 
-                //µ¯³ö´°Ìå
+                //å¼¹å‡ºçª—ä½“
                 FrmAttribute frm = new FrmAttribute(mode, currentID, currentType, currentStatus);
 
-                //Ö»ÓĞÔÚ±à¼­Ä£Ê½ÏÂµã»÷±£´æ£¬²Å»ØĞ´Êı¾İ
+                //åªæœ‰åœ¨ç¼–è¾‘æ¨¡å¼ä¸‹ç‚¹å‡»ä¿å­˜ï¼Œæ‰å›å†™æ•°æ®
                 if(frm.ShowDialog() == DialogResult.OK && mode == FrmAttribute.FormMode.EditInfo)
                 {
                     if(idxStatus != -1)
@@ -374,11 +376,11 @@ namespace ParkingLot
                     RenderLayerByStatus(_parkingLayer);
                 }
             }
-            //ÊÍ·ÅÓÎ±ê
+            //é‡Šæ”¾æ¸¸æ ‡
             System.Runtime.InteropServices.Marshal.ReleaseComObject(pCursor);
         }
 
-        // ÖØÖÃÊó±ê×´Ì¬
+        // é‡ç½®é¼ æ ‡çŠ¶æ€
         private void ResetMouseToNormal()
         {
             _currentAction = MouseAction.None;
@@ -388,105 +390,105 @@ namespace ParkingLot
 
         #endregion
 
-        private void ¼ÓÔØµØÍ¼ToolStripMenuItem1_Click(object sender, EventArgs e)
+        private void åŠ è½½åœ°å›¾ToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             LoadParkingMap();
         }
 
-        private void ³µÎ»ĞÅÏ¢²éÑ¯ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void è½¦ä½ä¿¡æ¯æŸ¥è¯¢ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //Çå¿Õµ±Ç°¹¤¾ß
+            //æ¸…ç©ºå½“å‰å·¥å…·
             m_mapControl.CurrentTool = null;
             _currentAction = MouseAction.QuerySpot;
-            //Êó±ê±äÊÖÖ¸
+            //é¼ æ ‡å˜æ‰‹æŒ‡
             m_mapControl.MousePointer = esriControlsMousePointer.esriPointerIdentify;
         }
 
         private void axMapControl1_OnMouseDown(object sender, IMapControlEvents2_OnMouseDownEvent e)
         {
-            //×ó¼ü½øĞĞ²Ù×÷£¨button1£©
+            //å·¦é”®è¿›è¡Œæ“ä½œï¼ˆbutton1ï¼‰
             if (e.button == 1)
             {
                 switch (_currentAction)
                 {
-                    //Ìí¼Ó³µÎ»Ä£Ê½
+                    //æ·»åŠ è½¦ä½æ¨¡å¼
                     case MouseAction.AddRect:
                     case MouseAction.AddPoly:
-                        //Í³Ò»µ÷ÓÃ»æÖÆ·½·¨
+                        //ç»Ÿä¸€è°ƒç”¨ç»˜åˆ¶æ–¹æ³•
                         DrawNewSpot();
                         break;
-                    //²éÑ¯Óë±à¼­³µÎ»Ä£Ê½
+                    //æŸ¥è¯¢ä¸ç¼–è¾‘è½¦ä½æ¨¡å¼
                     case MouseAction.QuerySpot:
                     case MouseAction.EditSpot:
-                        //Í³Ò»µ÷ÓÃµã»÷·½·¨
+                        //ç»Ÿä¸€è°ƒç”¨ç‚¹å‡»æ–¹æ³•
                         QueryAndEditSpot(e.mapX, e.mapY);
                         break;
                     default:
                         break;
                 }
             }
-            //ÓÒ¼üÍË³öµ±Ç°²Ù×÷Ä£Ê½£¬»Ö¸´Êó±êÔ­Ê¼×´Ì¬
+            //å³é”®é€€å‡ºå½“å‰æ“ä½œæ¨¡å¼ï¼Œæ¢å¤é¼ æ ‡åŸå§‹çŠ¶æ€
             else if(e.button == 2)
             {
                 if(_currentAction != MouseAction.None)
                 {
                     ResetMouseToNormal();
-                    MessageBox.Show("ÒÑÍË³öµ±Ç°²Ù×÷Ä£Ê½£¡");
+                    MessageBox.Show("å·²é€€å‡ºå½“å‰æ“ä½œæ¨¡å¼ï¼");
                 }
             }
         }
 
 
-        private void Í£Ö¹²Ù×÷ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void åœæ­¢æ“ä½œToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ResetMouseToNormal();
-            MessageBox.Show("ÒÑÍË³öµ±Ç°²Ù×÷Ä£Ê½£¡");
+            MessageBox.Show("å·²é€€å‡ºå½“å‰æ“ä½œæ¨¡å¼ï¼");
         }
 
-        private void »æÖÆ¾ØĞÎ³µÎ»ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ç»˜åˆ¶çŸ©å½¢è½¦ä½ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             axMapControl1.CurrentTool = null;
             _currentAction = MouseAction.AddRect;
             axMapControl1.MousePointer = esriControlsMousePointer.esriPointerCrosshair;
         }
 
-        private void »æÖÆ¶à±ßĞÎ³µÎ»ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ç»˜åˆ¶å¤šè¾¹å½¢è½¦ä½ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             axMapControl1.CurrentTool = null;
             _currentAction = MouseAction.AddPoly; 
             axMapControl1.MousePointer = esriControlsMousePointer.esriPointerPencil;
         }
 
-        private void ĞŞ¸ÄĞÅÏ¢ToolStripMenuItem2_Click(object sender, EventArgs e)
+        private void ä¿®æ”¹ä¿¡æ¯ToolStripMenuItem2_Click(object sender, EventArgs e)
         {
             m_mapControl.CurrentTool = null;
             _currentAction = MouseAction.EditSpot;
             m_mapControl.MousePointer = esriControlsMousePointer.esriPointerIdentify;
         }
 
-        private void Í£³µToolStripMenuItem_Click(object sender, EventArgs e)
+        private void åœè½¦ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string carlicenceplate = CarLicensePlateDialog.ShowDialogAndGetLicensePlate();
             var result = manager.CarEnter(carlicenceplate);
             if (result.Success)
             {
-                MessageBox.Show($"Èë³¡³É¹¦£¬·ÖÅä³µÎ»: {result.AssignedSpace.Id}");
+                MessageBox.Show($"å…¥åœºæˆåŠŸï¼Œåˆ†é…è½¦ä½: {result.AssignedSpace.Id}");
             }
         }
 
-        private void Àë³¡ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ç¦»åœºToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string carlicenceplate = CarLicensePlateDialog.ShowDialogAndGetLicensePlate();
             var exitResult = manager.CarExit(carlicenceplate);
             if (exitResult.Success)
             {
-                MessageBox.Show($"³ö³¡³É¹¦£¬·ÑÓÃ: {exitResult.ParkingFee:C}");
+                MessageBox.Show($"å‡ºåœºæˆåŠŸï¼Œè´¹ç”¨: {exitResult.ParkingFee:C}");
 
-                // Ö§¸¶
-                var paymentResult = manager.ProcessPayment(carlicenceplate, exitResult.ParkingFee, "ÏÖ½ğ");
+                // æ”¯ä»˜
+                var paymentResult = manager.ProcessPayment(carlicenceplate, exitResult.ParkingFee, "ç°é‡‘");
                 if (paymentResult.Success)
                 {
-                    MessageBox.Show($"Ö§¸¶³É¹¦£¬ÕÒÁã: {paymentResult.Change:C}");
+                    MessageBox.Show($"æ”¯ä»˜æˆåŠŸï¼Œæ‰¾é›¶: {paymentResult.Change:C}");
                 }
             }
             else
@@ -494,39 +496,300 @@ namespace ParkingLot
                 MessageBox.Show(exitResult.Message);
             }
         }
+
+        private void é¢„çº¦ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // 1. è·å–è½¦ç‰Œå·
+                string licensePlate = CarLicensePlateDialog.ShowDialogAndGetLicensePlate(this);
+
+                if (string.IsNullOrEmpty(licensePlate))
+                {
+                    return; // ç”¨æˆ·å–æ¶ˆè¾“å…¥
+                }
+
+                // 2. éªŒè¯è½¦ç‰Œå·æ ¼å¼
+                if (!CarLicensePlateDialog.ValidateLicensePlateFormat(licensePlate))
+                {
+                    MessageBox.Show("è½¦ç‰Œå·æ ¼å¼ä¸æ­£ç¡®ï¼Œè¯·é‡æ–°è¾“å…¥ï¼", "æ ¼å¼é”™è¯¯",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // 3. æ£€æŸ¥è½¦è¾†æ˜¯å¦å·²åœ¨åœè½¦åœºå†…
+                var car = manager.GetCarByLicense(licensePlate);
+
+                if (car != null)
+                {
+                    // æ£€æŸ¥è½¦è¾†çŠ¶æ€
+                    if (car.Status == VehicleStatus.Parked)
+                    {
+                        MessageBox.Show($"è½¦è¾† {licensePlate} å·²åœ¨åœè½¦åœºå†…ï¼Œæ— æ³•é¢„çº¦ï¼", "è½¦è¾†çŠ¶æ€é”™è¯¯",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    if (car.Status == VehicleStatus.Reserved)
+                    {
+                        var result = MessageBox.Show($"è½¦è¾† {licensePlate} å·²æœ‰é¢„çº¦ï¼Œæ˜¯å¦é‡æ–°é¢„çº¦ï¼Ÿ", "å·²æœ‰é¢„çº¦",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (result != DialogResult.Yes)
+                        {
+                            return;
+                        }
+
+                        // å–æ¶ˆç°æœ‰é¢„çº¦
+                        manager.CancelReservation(licensePlate);
+                    }
+                }
+                else
+                {
+                    // 4. è½¦è¾†æœªæ³¨å†Œï¼Œè¯¢é—®æ˜¯å¦ç«‹å³æ³¨å†Œ
+                    var registerResult = MessageBox.Show($"è½¦è¾† {licensePlate} æœªæ³¨å†Œï¼Œæ˜¯å¦ç«‹å³æ³¨å†Œï¼Ÿ", "è½¦è¾†æœªæ³¨å†Œ",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (registerResult == DialogResult.Yes)
+                    {
+                        // å¼¹å‡ºæ³¨å†Œå¯¹è¯æ¡†
+                        using (var registerDialog = new RegisterCarDialog())
+                        {
+                            // è®¾ç½®è½¦ç‰Œå·ï¼ˆç”¨æˆ·ä¸èƒ½ä¿®æ”¹ï¼‰
+                            //registerDialog.Controls.OfType<TextBox>()
+                            //    .FirstOrDefault(t => t.Name == "è½¦ç‰Œå·textBox")
+                            //    ?.Text = licensePlate;
+
+                            if (registerDialog.ShowDialog(this) == DialogResult.OK)
+                            {
+                                // åˆ›å»ºè½¦è¾†å¯¹è±¡
+                                car = new Car(licensePlate, registerDialog.SelectedVehicleType)
+                                {
+                                    Brand = registerDialog.SelectedCarBrand,
+                                    Color = registerDialog.SelectedCarColor,
+                                    OwnerName = registerDialog.OwnerName,
+                                    OwnerPhone = registerDialog.OwnerPhone,
+                                    IsVIP = registerDialog.IsVIP
+                                };
+
+                                // æ³¨å†Œè½¦è¾†
+                                if (!manager.RegisterCar(car))
+                                {
+                                    MessageBox.Show("è½¦è¾†æ³¨å†Œå¤±è´¥ï¼", "æ³¨å†Œå¤±è´¥",
+                                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                // ç”¨æˆ·å–æ¶ˆæ³¨å†Œ
+                                MessageBox.Show("é¢„çº¦éœ€è¦æ³¨å†Œè½¦è¾†ï¼Œæ“ä½œå·²å–æ¶ˆã€‚", "é¢„çº¦å–æ¶ˆ",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                return;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // ç”¨æˆ·ä¸æƒ³æ³¨å†Œï¼Œåˆ›å»ºä¸´æ—¶è½¦è¾†
+                        car = new Car(licensePlate, VehicleType.Car);
+                        manager.RegisterCar(car);
+                    }
+                }
+
+                // 5. é€‰æ‹©é¢„çº¦æ—¶é—´
+                DateTime? reservationTime = TimeDialog.ShowDialogAndGetTime(
+                    this,
+                    "é€‰æ‹©é¢„çº¦æ—¶é—´",
+                    DateTime.Now.AddMinutes(30), // é»˜è®¤30åˆ†é’Ÿå
+                    false); // ä¸å…è®¸é€‰æ‹©è¿‡å»æ—¶é—´
+
+                if (!reservationTime.HasValue)
+                {
+                    return; // ç”¨æˆ·å–æ¶ˆæ—¶é—´é€‰æ‹©
+                }
+
+                // 6. éªŒè¯é¢„çº¦æ—¶é—´
+                DateTime selectedTime = reservationTime.Value;
+
+                if (selectedTime < DateTime.Now)
+                {
+                    MessageBox.Show("é¢„çº¦æ—¶é—´ä¸èƒ½æ—©äºå½“å‰æ—¶é—´ï¼", "æ—¶é—´é”™è¯¯",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // æ£€æŸ¥é¢„çº¦æ—¶é—´æ˜¯å¦åœ¨åˆç†èŒƒå›´å†…ï¼ˆä¾‹å¦‚24å°æ—¶å†…ï¼‰
+                if ((selectedTime - DateTime.Now).TotalHours > 24)
+                {
+                    var confirmResult = MessageBox.Show("é¢„çº¦æ—¶é—´è¶…è¿‡24å°æ—¶ï¼Œæ˜¯å¦ç»§ç»­ï¼Ÿ", "ç¡®è®¤é¢„çº¦",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (confirmResult != DialogResult.Yes)
+                    {
+                        return;
+                    }
+                }
+
+                // 7. å°è¯•é¢„çº¦
+                var reservationResult = manager.ReserveSpace(car.LicensePlate, selectedTime);
+
+                if (reservationResult.Success)
+                {
+                    // é¢„çº¦æˆåŠŸ
+                    string successMessage = $"é¢„çº¦æˆåŠŸï¼\n\n" +
+                                           $"è½¦ç‰Œå·ï¼š{car.LicensePlate}\n" +
+                                           $"é¢„çº¦è½¦ä½ï¼š{reservationResult.ReservedSpace.Id}\n" +
+                                           $"è½¦ä½ä½ç½®ï¼š{reservationResult.ReservedSpace.Location}\n" +
+                                           $"è½¦ä½ç±»å‹ï¼š{reservationResult.ReservedSpace.Type}\n" +
+                                           $"é¢„çº¦æ—¶é—´ï¼š{selectedTime:yyyy-MM-dd HH:mm}\n\n";
+
+                    // æ·»åŠ è½¦ä½ç‰¹æ€§ä¿¡æ¯
+                    if (reservationResult.ReservedSpace.HasCharging)
+                    {
+                        successMessage += "âš¡ å¸¦å……ç”µæ¡©\n";
+                    }
+                    if (reservationResult.ReservedSpace.NearElevator)
+                    {
+                        successMessage += "â™¿ é è¿‘ç”µæ¢¯\n";
+                    }
+                    if (reservationResult.ReservedSpace.HasShelter)
+                    {
+                        successMessage += "â˜‚ æœ‰é®é˜³æ£š\n";
+                    }
+
+                    successMessage += $"\né¢„çº¦å®Œæˆæ—¶é—´ï¼š{DateTime.Now:HH:mm:ss}";
+
+                    MessageBox.Show(successMessage, "é¢„çº¦æˆåŠŸ",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    // 8. è®°å½•é¢„çº¦æ—¥å¿—
+                    //LogReservationOperation(car.LicensePlate, reservationResult.ReservedSpace.Id, selectedTime);
+
+                    // 9. æ›´æ–°ç•Œé¢æ˜¾ç¤º
+                    //RefreshParkingDisplay();
+                }
+                else
+                {
+                    // é¢„çº¦å¤±è´¥
+                    string errorMessage = $"é¢„çº¦å¤±è´¥ï¼\n\n" +
+                                         $"åŸå› ï¼š{reservationResult.Message}\n\n";
+
+                    // æä¾›è§£å†³æ–¹æ¡ˆæˆ–å»ºè®®
+                    if (reservationResult.Message.Contains("æ²¡æœ‰åˆé€‚çš„è½¦ä½") ||
+                        reservationResult.Message.Contains("æ²¡æœ‰åˆé€‚çš„è½¦ä½"))
+                    {
+                        errorMessage += "å»ºè®®ï¼š\n" +
+                                      "1. é€‰æ‹©å…¶ä»–é¢„çº¦æ—¶é—´\n" +
+                                      "2. ç¨åå†è¯•\n" +
+                                      "3. è”ç³»ç®¡ç†å‘˜";
+
+                        // æ˜¾ç¤ºå¯ç”¨è½¦ä½ä¿¡æ¯
+                        var availableSpaces = manager.GetAvailableSpaces();
+                        if (availableSpaces.Count > 0)
+                        {
+                            errorMessage += $"\n\nå½“å‰æœ‰ {availableSpaces.Count} ä¸ªç©ºé—²è½¦ä½ï¼Œä½†å¯èƒ½ä¸é€‚åˆæ‚¨çš„è½¦å‹ã€‚";
+                        }
+                    }
+                    else if (reservationResult.Message.Contains("å·²é¢„çº¦") ||
+                             reservationResult.Message.Contains("å·²å ç”¨"))
+                    {
+                        errorMessage += "è¯¥æ—¶é—´æ®µè½¦ä½å·²è¢«å ç”¨ï¼Œè¯·é€‰æ‹©å…¶ä»–æ—¶é—´ã€‚";
+                    }
+
+                    MessageBox.Show(errorMessage, "é¢„çº¦å¤±è´¥",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"é¢„çº¦è¿‡ç¨‹ä¸­å‘ç”Ÿé”™è¯¯ï¼š\n{ex.Message}", "ç³»ç»Ÿé”™è¯¯",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
+        private void æ³¨å†Œè½¦è¾†ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // æ˜¾ç¤ºæ³¨å†Œå¯¹è¯æ¡†å¹¶åˆ›å»ºè½¦è¾†
+            var car = RegisterCarDialog.ShowDialogAndCreateCar(this);
+            if (car != null)
+            {
+                // æ³¨å†Œåˆ°åœè½¦åœºç®¡ç†å™¨
+                if (manager.RegisterCar(car))
+                {
+                    MessageBox.Show($"è½¦è¾† {car.LicensePlate} æ³¨å†ŒæˆåŠŸ");
+                }
+            }
+        }
+
+        private void æ³¨é”€è½¦è¾†ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // è·å–è¦ç¼–è¾‘çš„è½¦è¾†
+            string carlicenceplate = CarLicensePlateDialog.ShowDialogAndGetLicensePlate();
+            if (manager.UnregisterCar(carlicenceplate))
+            {
+                MessageBox.Show($"å·²æ³¨é”€è½¦è¾†{carlicenceplate}ã€‚");
+            }
+            else
+            {
+                MessageBox.Show($"è½¦è¾†{carlicenceplate}æ­£åœ¨åœè½¦ï¼Œæ— æ³•æ³¨é”€ã€‚");
+            }
+        }
+
+        private void ä¿®æ”¹ä¿¡æ¯ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // è·å–è¦ç¼–è¾‘çš„è½¦è¾†
+            string carlicenceplate = CarLicensePlateDialog.ShowDialogAndGetLicensePlate();
+            var car = manager.GetCarByLicense(carlicenceplate);
+
+            if (car != null)
+            {
+                // æ˜¾ç¤ºç¼–è¾‘å¯¹è¯æ¡†
+                if (RegisterCarDialog.ShowDialogAndEditCar(car, this))
+                {
+                    MessageBox.Show($"è½¦è¾† {car.LicensePlate} ä¿¡æ¯å·²æ›´æ–°");
+                }
+            }
+        }
+
+        private void ä¿¡æ¯æŸ¥è¯¢ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
 
 
-//// »ñÈ¡Í£³µ³¡¹ÜÀíÊµÀı
+//// è·å–åœè½¦åœºç®¡ç†å®ä¾‹
 //var manager = ParkingLotManager.Instance;
 
-//// ³µÁ¾Èë³¡
-//var result = manager.CarEnter("ÕãA12345");
+//// è½¦è¾†å…¥åœº
+//var result = manager.CarEnter("æµ™A12345");
 //if (result.Success)
 //{
-//    Console.WriteLine($"Èë³¡³É¹¦£¬·ÖÅä³µÎ»: {result.AssignedSpace.Id}");
+//    Console.WriteLine($"å…¥åœºæˆåŠŸï¼Œåˆ†é…è½¦ä½: {result.AssignedSpace.Id}");
 //}
 
-//// ³µÁ¾³ö³¡
-//var exitResult = manager.CarExit("ÕãA12345");
+//// è½¦è¾†å‡ºåœº
+//var exitResult = manager.CarExit("æµ™A12345");
 //if (exitResult.Success)
 //{
-//    Console.WriteLine($"³ö³¡³É¹¦£¬·ÑÓÃ: {exitResult.ParkingFee:C}");
+//    Console.WriteLine($"å‡ºåœºæˆåŠŸï¼Œè´¹ç”¨: {exitResult.ParkingFee:C}");
 
-//    // Ö§¸¶
-//    var paymentResult = manager.ProcessPayment("ÕãA12345", exitResult.ParkingFee, "ÏÖ½ğ");
+//    // æ”¯ä»˜
+//    var paymentResult = manager.ProcessPayment("æµ™A12345", exitResult.ParkingFee, "ç°é‡‘");
 //    if (paymentResult.Success)
 //    {
-//        Console.WriteLine($"Ö§¸¶³É¹¦£¬ÕÒÁã: {paymentResult.Change:C}");
+//        Console.WriteLine($"æ”¯ä»˜æˆåŠŸï¼Œæ‰¾é›¶: {paymentResult.Change:C}");
 //    }
 //}
 
-//// ²é¿´Í£³µ³¡×´Ì¬
+//// æŸ¥çœ‹åœè½¦åœºçŠ¶æ€
 //Console.WriteLine(manager.GetParkingLotSummary());
 
-//// ËÑË÷³µÁ¾
-//var cars = manager.SearchCars("ÕÅÈı");
+//// æœç´¢è½¦è¾†
+//var cars = manager.SearchCars("å¼ ä¸‰");
 //foreach (var car in cars)
 //{
 //    Console.WriteLine(car.GetDescription());
