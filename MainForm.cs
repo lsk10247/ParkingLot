@@ -466,7 +466,8 @@ namespace ParkingLot
 
         private void 停车ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var result = manager.CarEnter("浙A12345");
+            string carlicenceplate = CarLicensePlateDialog.ShowDialogAndGetLicensePlate();
+            var result = manager.CarEnter(carlicenceplate);
             if (result.Success)
             {
                 MessageBox.Show($"入场成功，分配车位: {result.AssignedSpace.Id}");
@@ -475,17 +476,22 @@ namespace ParkingLot
 
         private void 离场ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var exitResult = manager.CarExit("浙A12345");
+            string carlicenceplate = CarLicensePlateDialog.ShowDialogAndGetLicensePlate();
+            var exitResult = manager.CarExit(carlicenceplate);
             if (exitResult.Success)
             {
-                Console.WriteLine($"出场成功，费用: {exitResult.ParkingFee:C}");
+                MessageBox.Show($"出场成功，费用: {exitResult.ParkingFee:C}");
 
                 // 支付
-                var paymentResult = manager.ProcessPayment("浙A12345", exitResult.ParkingFee, "现金");
+                var paymentResult = manager.ProcessPayment(carlicenceplate, exitResult.ParkingFee, "现金");
                 if (paymentResult.Success)
                 {
-                    Console.WriteLine($"支付成功，找零: {paymentResult.Change:C}");
+                    MessageBox.Show($"支付成功，找零: {paymentResult.Change:C}");
                 }
+            }
+            else
+            {
+                MessageBox.Show(exitResult.Message);
             }
         }
     }

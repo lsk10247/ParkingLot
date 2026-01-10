@@ -91,6 +91,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Car.cs" />
+    <Compile Include="CarLicensePlateDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CarLicensePlateDialog.Designer.cs">
+      <DependentUpon>CarLicensePlateDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="CreateNewDocument.cs" />
     <Compile Include="FrmAttribute.cs">
       <SubType>Form</SubType>
@@ -107,6 +113,9 @@
     <Compile Include="ParkingLotManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="CarLicensePlateDialog.resx">
+      <DependentUpon>CarLicensePlateDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrmAttribute.resx">
       <DependentUpon>FrmAttribute.cs</DependentUpon>
     </EmbeddedResource>
