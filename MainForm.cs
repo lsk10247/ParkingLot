@@ -138,11 +138,12 @@ namespace ParkingLot
         /// </summary>
         /// <param name="folderPath"></param>
         /// <param name="fileName"></param>
+        // 在主窗体类中添加
         private void LoadParkingMap()
         {
             try
             {
-                //弹出对话框选择文件
+                // 弹出对话框选择文件
                 OpenFileDialog dlg = new OpenFileDialog();
                 dlg.Filter = "Shapefile文件(*.shp)|*.shp";
                 dlg.Title = "请选择停车场车位数据";
@@ -150,13 +151,17 @@ namespace ParkingLot
                 string path = null;
                 string file = null;
 
-                if(dlg.ShowDialog() == DialogResult.OK)
+                if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     path = System.IO.Path.GetDirectoryName(dlg.FileName);
                     file = System.IO.Path.GetFileName(dlg.FileName);
                 }
+                else
+                {
+                    return;
+                }
 
-                //加载数据
+                // 加载数据
                 IWorkspaceFactory pWorkspaceFactory = new ShapefileWorkspaceFactoryClass();
                 IFeatureWorkspace pFeatureWorkspace = (IFeatureWorkspace)pWorkspaceFactory.OpenFromFile(path, 0);
                 IFeatureClass pFeatureClass = pFeatureWorkspace.OpenFeatureClass(System.IO.Path.GetFileNameWithoutExtension(file));
@@ -165,17 +170,113 @@ namespace ParkingLot
                 _parkingLayer.FeatureClass = pFeatureClass;
                 _parkingLayer.Name = "停车场车位";
 
-                //调用渲染函数，根据状态上色
+                // 调用渲染函数，根据状态上色
                 RenderLayerByStatus(_parkingLayer);
 
-                //添加到地图
+                // 添加到地图
                 m_mapControl.AddLayer(_parkingLayer);
                 m_mapControl.ActiveView.Refresh();
+
+                // 将图层传递给ParkingLotManager
+                manager.MapControl = m_mapControl as IMapControl3;
+                manager.SetParkingLayer(_parkingLayer);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show($"地图加载失败：{ex.Message}");
             }
+        }
+
+        // 修改QueryAndEditSpot方法，使其与ParkingLotManager交互
+        private void QueryAndEditSpot(double x, double y)
+        {
+            if (_parkingLayer == null)
+            {
+                return;
+            }
+
+            IPoint pPoint = new PointClass();
+            //将屏幕坐标转为地图点
+            pPoint.PutCoords(x, y);
+
+            //空间过滤器：查找与点击点相交的要素
+            ISpatialFilter pFilter = new SpatialFilterClass();
+            pFilter.Geometry = pPoint;
+            pFilter.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
+
+            IFeatureCursor pCursor = _parkingLayer.FeatureClass.Search(pFilter, false);
+            IFeature pFeature = pCursor.NextFeature();
+
+            if (pFeature != null)
+            {
+                //获取当前车位属性值
+                int idxID = pFeature.Fields.FindField("SpotID");
+                int idxStatus = pFeature.Fields.FindField("Status");
+                int idxType = pFeature.Fields.FindField("Type");
+
+                //处理为查询到的情况
+                string currentID = (idxID != -1) ? pFeature.get_Value(idxID).ToString() : "未知";
+                string currentType = (idxType != -1) ? pFeature.get_Value(idxType).ToString() : "Standard";
+
+                int currentStatus = 0;
+                if (idxStatus != -1)
+                {
+                    object val = pFeature.get_Value(idxStatus);
+                    int.TryParse(val.ToString(), out currentStatus);
+                }
+
+                // 从ParkingLotManager获取对应的停车位对象
+                var parkingSpace = manager.GetParkingSpaceById(currentID);
+
+                if (parkingSpace == null)
+                {
+                    MessageBox.Show("未在管理系统中找到对应的车位");
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(pCursor);
+                    return;
+                }
+
+                //判断是查询还是编辑
+                bool isEditMode = (_currentAction == MouseAction.EditSpot);
+
+                // 使用我们的车辆信息查看对话框
+                using (var spaceInfoDialog = new ParkingLotVisualizationForm(manager))
+                {
+                    if (isEditMode)
+                    {
+                        // 编辑模式下显示可编辑的对话框
+                        // 这里可以创建一个新的编辑对话框，或者修改现有对话框支持编辑
+                        // 为了简化，我们只更新状态
+                        var result = MessageBox.Show($"是否将车位 {currentID} 状态改为空闲？",
+                            "编辑车位", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            // 更新管理系统中的状态
+                            parkingSpace.Status = ParkingSpaceStatus.Available;
+
+                            // 更新地图要素
+                            if (idxStatus != -1)
+                            {
+                                pFeature.set_Value(idxStatus, 0); // 0表示空闲
+                                pFeature.Store();
+                            }
+
+                            // 通知管理器更新地图
+                            manager.UpdateMapSpaceStatus(currentID, ParkingSpaceStatus.Available);
+
+                            m_mapControl.ActiveView.Refresh();
+                            RenderLayerByStatus(_parkingLayer);
+                        }
+                    }
+                    else
+                    {
+                        // 查询模式，只显示信息
+                        spaceInfoDialog.ShowDialog();
+                    }
+                }
+            }
+            //释放游标
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(pCursor);
         }
 
 
@@ -311,71 +412,71 @@ namespace ParkingLot
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        private void QueryAndEditSpot(double x, double y)
-        {
-            if(_parkingLayer == null)
-            {
-                return;
-            }
+        //private void QueryAndEditSpot(double x, double y)
+        //{
+        //    if(_parkingLayer == null)
+        //    {
+        //        return;
+        //    }
 
-            IPoint pPoint = new PointClass();
-            //将屏幕坐标转为地图点
-            pPoint.PutCoords(x, y);
+        //    IPoint pPoint = new PointClass();
+        //    //将屏幕坐标转为地图点
+        //    pPoint.PutCoords(x, y);
 
-            //空间过滤器：查找与点击点相交的要素
-            ISpatialFilter pFilter = new SpatialFilterClass();
-            pFilter.Geometry = pPoint;
-            pFilter.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
+        //    //空间过滤器：查找与点击点相交的要素
+        //    ISpatialFilter pFilter = new SpatialFilterClass();
+        //    pFilter.Geometry = pPoint;
+        //    pFilter.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
 
-            IFeatureCursor pCursor = _parkingLayer.FeatureClass.Search(pFilter, false);
-            IFeature pFeature = pCursor.NextFeature();
+        //    IFeatureCursor pCursor = _parkingLayer.FeatureClass.Search(pFilter, false);
+        //    IFeature pFeature = pCursor.NextFeature();
 
-            if(pFeature != null)
-            {
-                //获取当前车位属性值
-                int idxID = pFeature.Fields.FindField("SpotID");
-                int idxStatus = pFeature.Fields.FindField("Status");
-                int idxType = pFeature.Fields.FindField("Type");
+        //    if(pFeature != null)
+        //    {
+        //        //获取当前车位属性值
+        //        int idxID = pFeature.Fields.FindField("SpotID");
+        //        int idxStatus = pFeature.Fields.FindField("Status");
+        //        int idxType = pFeature.Fields.FindField("Type");
 
-                //处理为查询到的情况
-                string currentID = (idxID != -1) ? pFeature.get_Value(idxID).ToString() : "未知";
-                string currentType = (idxType != -1) ? pFeature.get_Value(idxType).ToString() : "Standard";
+        //        //处理为查询到的情况
+        //        string currentID = (idxID != -1) ? pFeature.get_Value(idxID).ToString() : "未知";
+        //        string currentType = (idxType != -1) ? pFeature.get_Value(idxType).ToString() : "Standard";
 
-                int currentStatus = 0;
-                if(idxStatus != -1)
-                {
-                    object val = pFeature.get_Value(idxStatus);
-                    int.TryParse(val.ToString(), out currentStatus);
-                }
+        //        int currentStatus = 0;
+        //        if(idxStatus != -1)
+        //        {
+        //            object val = pFeature.get_Value(idxStatus);
+        //            int.TryParse(val.ToString(), out currentStatus);
+        //        }
 
-                //判断是查询还是编辑
-                FrmAttribute.FormMode mode = (_currentAction == MouseAction.QuerySpot)
-                    ? FrmAttribute.FormMode.ViewOnly
-                    : FrmAttribute.FormMode.EditInfo;
+        //        //判断是查询还是编辑
+        //        FrmAttribute.FormMode mode = (_currentAction == MouseAction.QuerySpot)
+        //            ? FrmAttribute.FormMode.ViewOnly
+        //            : FrmAttribute.FormMode.EditInfo;
 
-                //弹出窗体
-                FrmAttribute frm = new FrmAttribute(mode, currentID, currentType, currentStatus);
+        //        //弹出窗体
+        //        FrmAttribute frm = new FrmAttribute(mode, currentID, currentType, currentStatus);
 
-                //只有在编辑模式下点击保存，才回写数据
-                if(frm.ShowDialog() == DialogResult.OK && mode == FrmAttribute.FormMode.EditInfo)
-                {
-                    if(idxStatus != -1)
-                    {
-                        pFeature.set_Value(idxStatus, frm.SpotStatus);
-                    }
-                    if(idxType != -1)
-                    {
-                        pFeature.set_Value(idxType, frm.SpotType);
-                    }
+        //        //只有在编辑模式下点击保存，才回写数据
+        //        if(frm.ShowDialog() == DialogResult.OK && mode == FrmAttribute.FormMode.EditInfo)
+        //        {
+        //            if(idxStatus != -1)
+        //            {
+        //                pFeature.set_Value(idxStatus, frm.SpotStatus);
+        //            }
+        //            if(idxType != -1)
+        //            {
+        //                pFeature.set_Value(idxType, frm.SpotType);
+        //            }
 
-                    pFeature.Store();
-                    m_mapControl.ActiveView.Refresh();
-                    RenderLayerByStatus(_parkingLayer);
-                }
-            }
-            //释放游标
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(pCursor);
-        }
+        //            pFeature.Store();
+        //            m_mapControl.ActiveView.Refresh();
+        //            RenderLayerByStatus(_parkingLayer);
+        //        }
+        //    }
+        //    //释放游标
+        //    System.Runtime.InteropServices.Marshal.ReleaseComObject(pCursor);
+        //}
 
         // 重置鼠标状态
         private void ResetMouseToNormal()

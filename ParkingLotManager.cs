@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ParkingLot;
+using ESRI.ArcGIS.Carto;
+using ESRI.ArcGIS.Geodatabase;
+using ESRI.ArcGIS.Geometry;
+using ESRI.ArcGIS.esriSystem;
+using ESRI.ArcGIS.Display;
+using System.Runtime.InteropServices;
+using ESRI.ArcGIS.Controls;
 
 namespace ParkingLotManager
 {
@@ -67,6 +74,451 @@ namespace ParkingLotManager
         /// 违规记录列表
         /// </summary>
         private List<ViolationRecord> _violationRecords = new List<ViolationRecord>();
+
+
+        // 添加 ArcEngine 相关字段
+        private IFeatureLayer _parkingLayer = null;
+        private IMapControl3 _mapControl = null;
+
+        // 设置地图控件的属性
+        public IMapControl3 MapControl
+        {
+            set { _mapControl = value; }
+        }
+        #endregion
+
+        #region 交互
+        // 设置停车层
+        public void SetParkingLayer(IFeatureLayer parkingLayer)
+        {
+            _parkingLayer = parkingLayer;
+            InitializeFromMapLayer();
+        }
+
+        //
+        private void LogError(string message)
+        {
+
+        }
+
+        // 从地图图层初始化停车场
+        private void InitializeFromMapLayer()
+        {
+            try
+            {
+                if (_parkingLayer == null)
+                {
+                    //MessageBox.Show("车位图层未加载");
+                    return;
+                }
+
+                // 清空现有车位
+                _allParkingSpaces.Clear();
+
+                // 获取要素游标
+                IFeatureClass featureClass = _parkingLayer.FeatureClass;
+                IFeatureCursor cursor = featureClass.Search(null, false);
+                IFeature feature = cursor.NextFeature();
+
+                int idFieldIndex = featureClass.FindField("SpotID");
+                int typeFieldIndex = featureClass.FindField("Type");
+                int statusFieldIndex = featureClass.FindField("Status");
+
+                while (feature != null)
+                {
+                    try
+                    {
+                        // 获取要素属性
+                        string spotId = "";
+                        string spotType = "Standard";
+                        int spotStatus = 0;
+
+                        if (idFieldIndex != -1)
+                        {
+                            spotId = feature.get_Value(idFieldIndex)?.ToString() ?? "";
+                        }
+
+                        if (typeFieldIndex != -1)
+                        {
+                            spotType = feature.get_Value(typeFieldIndex)?.ToString() ?? "Standard";
+                        }
+
+                        if (statusFieldIndex != -1)
+                        {
+                            int.TryParse(feature.get_Value(statusFieldIndex)?.ToString(), out spotStatus);
+                        }
+
+                        // 如果SpotID为空，使用OBJECTID
+                        if (string.IsNullOrEmpty(spotId))
+                        {
+                            spotId = $"S{feature.OID}";
+                        }
+
+                        // 转换车位类型
+                        ParkingSpaceType spaceType = ConvertToParkingSpaceType(spotType);
+
+                        // 创建停车位对象
+                        var space = new ParkingSpace(spotId, spaceType)
+                        {
+                            Location = GetLocationFromFeature(feature),
+                            Status = ConvertToParkingSpaceStatus(spotStatus)
+                        };
+
+                        // 根据类型设置其他属性
+                        SetSpaceProperties(space);
+
+                        // 添加到管理器中
+                        AddParkingSpace(space);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError($"初始化车位失败: {ex.Message}");
+                    }
+
+                    feature = cursor.NextFeature();
+                }
+
+                // 释放游标
+                Marshal.ReleaseComObject(cursor);
+
+                TotalCapacity = _allParkingSpaces.Count;
+
+                // 创建示例车辆
+                AddSampleCars();
+
+                //MessageBox.Show($"成功从地图加载 {TotalCapacity} 个车位", "加载成功",
+                //    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                //MessageBox.Show($"从地图加载车位失败: {ex.Message}", "错误",
+                //    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogError($"InitializeFromMapLayer失败: {ex.Message}");
+            }
+        }
+        // 将字符串转换为车位类型枚举
+        private ParkingSpaceType ConvertToParkingSpaceType(string typeString)
+        {
+            if (string.IsNullOrEmpty(typeString))
+                return ParkingSpaceType.Standard;
+
+            string lowerTypeString = typeString.ToLower();
+            switch (lowerTypeString)
+            {
+                case "standard":
+                    return ParkingSpaceType.Standard;
+                case "compact":
+                    return ParkingSpaceType.Compact;
+                case "electric":
+                    return ParkingSpaceType.Electric;
+                case "motorcycle":
+                    return ParkingSpaceType.Motorcycle;
+                case "vip":
+                    return ParkingSpaceType.VIP;
+                case "disabled":
+                    return ParkingSpaceType.Disabled;
+                default:
+                    return ParkingSpaceType.Standard;
+            }
+        }
+
+        // 将整数值转换为车位状态枚举
+        private ParkingSpaceStatus ConvertToParkingSpaceStatus(int statusValue)
+        {
+            switch (statusValue)
+            {
+                case 0:
+                    return ParkingSpaceStatus.Available;
+                case 1:
+                    return ParkingSpaceStatus.Occupied;
+                case 2:
+                    return ParkingSpaceStatus.Reserved;
+                case 3:
+                    return ParkingSpaceStatus.Maintenance;
+                case 4:
+                    return ParkingSpaceStatus.Disabled;
+                default:
+                    return ParkingSpaceStatus.Available;
+            }
+        }
+
+        // 根据要素获取位置描述
+        private string GetLocationFromFeature(IFeature feature)
+        {
+            // 这里可以根据要素的几何信息生成位置描述
+            // 例如：根据坐标判断区域
+            try
+            {
+                IGeometry geometry = feature.ShapeCopy;
+                IEnvelope envelope = geometry.Envelope;
+
+                double centerX = (envelope.XMin + envelope.XMax) / 2;
+                double centerY = (envelope.YMin + envelope.YMax) / 2;
+
+                // 简单分区：根据坐标值判断区域
+                string area = "A区";
+                if (centerY > 100) area = "B区";
+                if (centerX > 100) area = "C区";
+                if (centerX > 100 && centerY > 100) area = "D区";
+
+                return $"{area}-{feature.OID:000}";
+            }
+            catch
+            {
+                return $"区域-{feature.OID:000}";
+            }
+        }
+
+        // 根据车位类型设置属性
+        private void SetSpaceProperties(ParkingSpace space)
+        {
+            switch (space.Type)
+            {
+                case ParkingSpaceType.Electric:
+                    space.HasCharging = true;
+                    space.HourlyRate = 12m;
+                    break;
+                case ParkingSpaceType.VIP:
+                    space.HasShelter = true;
+                    space.NearElevator = true;
+                    space.HourlyRate = 15m;
+                    break;
+                case ParkingSpaceType.Disabled:
+                    space.NearElevator = true;
+                    space.HourlyRate = 8m;
+                    break;
+                case ParkingSpaceType.Compact:
+                    space.Size = 12.0;
+                    space.HourlyRate = 8m;
+                    break;
+                case ParkingSpaceType.Motorcycle:
+                    space.Size = 3.0;
+                    space.HourlyRate = 5m;
+                    break;
+                default:
+                    space.Size = 15.0;
+                    space.HourlyRate = 10m;
+                    break;
+            }
+        }
+
+        // 更新地图上的车位状态
+        public void UpdateMapSpaceStatus(string spaceId, ParkingSpaceStatus newStatus)
+        {
+            if (_parkingLayer == null || _mapControl == null)
+                return;
+
+            try
+            {
+                IFeatureClass featureClass = _parkingLayer.FeatureClass;
+                int statusFieldIndex = featureClass.FindField("Status");
+                int idFieldIndex = featureClass.FindField("SpotID");
+
+                if (statusFieldIndex == -1 || idFieldIndex == -1)
+                    return;
+
+                // 创建查询过滤器
+                IQueryFilter queryFilter = new QueryFilterClass();
+                queryFilter.WhereClause = $"SpotID = '{spaceId}'";
+
+                IFeatureCursor cursor = featureClass.Search(queryFilter, false);
+                IFeature feature = cursor.NextFeature();
+
+                if (feature != null)
+                {
+                    // 转换状态值
+                    int statusValue = ConvertFromParkingSpaceStatus(newStatus);
+
+                    // 更新要素属性
+                    feature.set_Value(statusFieldIndex, statusValue);
+                    feature.Store();
+
+                    // 刷新地图显示
+                    if (_mapControl.ActiveView != null)
+                    {
+                        _mapControl.ActiveView.PartialRefresh(esriViewDrawPhase.esriViewGeography,
+                            _parkingLayer, null);
+                    }
+                }
+
+                Marshal.ReleaseComObject(cursor);
+            }
+            catch (Exception ex)
+            {
+                LogError($"更新地图车位状态失败: {ex.Message}");
+            }
+        }
+
+        // 将车位状态枚举转换为整数值
+        private int ConvertFromParkingSpaceStatus(ParkingSpaceStatus status)
+        {
+            int result;
+            switch (status)
+            {
+                case ParkingSpaceStatus.Available:
+                    result = 0;
+                    break;
+                case ParkingSpaceStatus.Occupied:
+                    result = 1;
+                    break;
+                case ParkingSpaceStatus.Reserved:
+                    result = 2;
+                    break;
+                case ParkingSpaceStatus.Maintenance:
+                    result = 3;
+                    break;
+                case ParkingSpaceStatus.Disabled:
+                    result = 4;
+                    break;
+                default:
+                    result = 0;
+                    break;
+            }
+            return result;
+        }
+
+        // 同步所有车位状态到地图
+        public void SyncAllSpacesToMap()
+        {
+            if (_parkingLayer == null)
+                return;
+
+            try
+            {
+                foreach (var space in _allParkingSpaces.Values)
+                {
+                    UpdateMapSpaceStatus(space.Id, space.Status);
+                }
+
+                // 重新渲染图层
+                RenderLayerByStatus();
+            }
+            catch (Exception ex)
+            {
+                LogError($"同步车位状态到地图失败: {ex.Message}");
+            }
+        }
+
+        private void RenderLayerByStatus()
+        {
+            if (_parkingLayer == null)
+                return;
+
+            try
+            {
+                IGeoFeatureLayer geoLayer = _parkingLayer as IGeoFeatureLayer;
+                IUniqueValueRenderer renderer = new UniqueValueRendererClass();
+
+                // 设置字段
+                renderer.FieldCount = 1;
+                renderer.set_Field(0, "Status");
+
+                // 创建符号
+                // 绿色-空闲
+                ISimpleFillSymbol symFree = new SimpleFillSymbolClass();
+                symFree.Color = GetRgbColor(0, 255, 0);
+                symFree.Style = esriSimpleFillStyle.esriSFSSolid;
+
+                // 红色-占用
+                ISimpleFillSymbol symBusy = new SimpleFillSymbolClass();
+                symBusy.Color = GetRgbColor(255, 0, 0);
+                symBusy.Style = esriSimpleFillStyle.esriSFSSolid;
+
+                // 蓝色-预约
+                ISimpleFillSymbol symBooked = new SimpleFillSymbolClass();
+                symBooked.Color = GetRgbColor(0, 0, 255);
+                symBooked.Style = esriSimpleFillStyle.esriSFSSolid;
+
+                // 灰色-维护
+                ISimpleFillSymbol symMaintenance = new SimpleFillSymbolClass();
+                symMaintenance.Color = GetRgbColor(128, 128, 128);
+                symMaintenance.Style = esriSimpleFillStyle.esriSFSSolid;
+
+                // 深灰色-禁用
+                ISimpleFillSymbol symDisabled = new SimpleFillSymbolClass();
+                symDisabled.Color = GetRgbColor(64, 64, 64);
+                symDisabled.Style = esriSimpleFillStyle.esriSFSSolid;
+
+                // 添加对应关系
+                renderer.AddValue("0", "空闲", symFree as ISymbol);
+                renderer.AddValue("1", "占用", symBusy as ISymbol);
+                renderer.AddValue("2", "预约", symBooked as ISymbol);
+                renderer.AddValue("3", "维护", symMaintenance as ISymbol);
+                renderer.AddValue("4", "禁用", symDisabled as ISymbol);
+
+                geoLayer.Renderer = renderer as IFeatureRenderer;
+
+                if (_mapControl != null && _mapControl.ActiveView != null)
+                {
+                    _mapControl.ActiveView.Refresh();
+                }
+            }
+            catch (Exception ex)
+            {
+                //MessageBox.Show($"渲染错误：{ex.Message}");
+            }
+        }
+
+        // 创建RGB颜色
+        private IRgbColor GetRgbColor(int red, int green, int blue)
+        {
+            IRgbColor rgbColor = new RgbColorClass();
+            rgbColor.Red = red;
+            rgbColor.Green = green;
+            rgbColor.Blue = blue;
+            return rgbColor;
+        }
+
+        // 从地图点击查询车位
+        public ParkingSpace QuerySpaceFromMap(double x, double y)
+        {
+            if (_parkingLayer == null || _mapControl == null)
+                return null;
+
+            try
+            {
+                IPoint point = new PointClass();
+                point.PutCoords(x, y);
+
+                ISpatialFilter spatialFilter = new SpatialFilterClass();
+                spatialFilter.Geometry = point;
+                spatialFilter.SpatialRel = esriSpatialRelEnum.esriSpatialRelIntersects;
+
+                IFeatureCursor cursor = _parkingLayer.FeatureClass.Search(spatialFilter, false);
+                IFeature feature = cursor.NextFeature();
+
+                if (feature != null)
+                {
+                    int idFieldIndex = _parkingLayer.FeatureClass.FindField("SpotID");
+                    string spotId = "";
+
+                    if (idFieldIndex != -1)
+                    {
+                        spotId = feature.get_Value(idFieldIndex)?.ToString() ?? "";
+                    }
+
+                    if (string.IsNullOrEmpty(spotId))
+                    {
+                        spotId = $"S{feature.OID}";
+                    }
+
+                    // 返回对应的停车位对象
+                    if (_allParkingSpaces.ContainsKey(spotId))
+                    {
+                        return _allParkingSpaces[spotId];
+                    }
+                }
+
+                Marshal.ReleaseComObject(cursor);
+            }
+            catch (Exception ex)
+            {
+                LogError($"地图查询失败: {ex.Message}");
+            }
+
+            return null;
+        }
+
         #endregion
 
         #region 停车场配置
@@ -561,6 +1013,9 @@ namespace ParkingLotManager
                 assignedSpace.CancelReservation();
             }
 
+            // 更新地图状态
+            UpdateMapSpaceStatus(assignedSpace.Id, ParkingSpaceStatus.Occupied);
+
             return new ParkingInfo
             {
                 Success = true,
@@ -636,6 +1091,9 @@ namespace ParkingLotManager
                 parkingRecord.TotalFee = fee;
             }
 
+            // 更新地图状态
+            UpdateMapSpaceStatus(space.Id, ParkingSpaceStatus.Available);
+
             return new ParkingInfo
             {
                 Success = true,
@@ -698,6 +1156,9 @@ namespace ParkingLotManager
                 space.CancelReservation();
                 return new ReservationInfo { Success = false, Message = "车辆预约失败" };
             }
+
+            // 更新地图状态
+            UpdateMapSpaceStatus(space.Id, ParkingSpaceStatus.Reserved);
 
             return new ReservationInfo
             {
